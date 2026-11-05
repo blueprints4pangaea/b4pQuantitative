@@ -329,29 +329,10 @@ table {
   grid-template-columns: minmax(280px, 360px);
 }
 
-.shipment-timing-grid {
-  margin-top: 16px;
-}
 
-.shipment-timing-summary-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
 
-.shipment-flow-metrics-header {
-  margin-top: 0;
-}
 
-.shipment-kpi-subtabs {
-  margin-top: 4px;
-  margin-bottom: 24px;
-}
 
-.shipment-flow-time-view {
-  padding: 22px;
-  border: 1px solid var(--brand-light);
-  border-radius: 18px;
-  background: var(--bp-surface-raised);
-}
 
 .metric-card {
   padding: 18px;
@@ -844,18 +825,7 @@ table {
   font-family: var(--bp-display);
 }
 
-.kpi-note-card {
-  margin-top: 18px;
-  padding: 16px 18px;
-  border-radius: 16px;
-  background: var(--bp-surface-raised);
-  border: 1px solid #ececec;
-  color: var(--bp-ink-muted);
-}
 
-.kpi-note-card p:last-child {
-  margin-bottom: 0;
-}
 
 .shipment-kpi-grid {
   display: grid;
@@ -1296,9 +1266,6 @@ table {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .shipment-timing-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
   .metrics-grid.metrics-grid-single {
     grid-template-columns: 1fr;
