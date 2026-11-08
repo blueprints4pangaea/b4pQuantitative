@@ -41,8 +41,6 @@ const BUTTON_TOOLTIPS = {
   "use expiration filter": "Sort supplies by expiration date",
   "view all 10 kpis": "View all KPIs",
   "view shipments": "Open current shipments",
-  "shipment activity": "View shipment activity KPIs",
-  "shipment flow time": "View shipment flow-time KPIs",
   "edit pallet conformation": "Edit the pallet layout configuration",
   "save conformation": "Save the updated pallet layout configuration",
   "same day": "Use the shipment date as the delivery date",
@@ -455,18 +453,6 @@ function daysBetweenDates(targetDateValue, referenceDateValue) {
   }
 
   return Math.round((targetDate - referenceDate) / 86400000);
-}
-
-function averageShipmentDays(shipments, startField, endField) {
-  const values = shipments
-    .map((shipment) => daysBetweenDates(shipment[endField], shipment[startField]))
-    .filter((value) => value !== null);
-
-  return average(values);
-}
-
-function formatAverageDays(value) {
-  return `${value.toFixed(1)} days`;
 }
 
 function expirationStatus(diff) {
@@ -1349,7 +1335,6 @@ function ShipmentBarChart({ data, variant = "primary", compact = false }) {
 export default function App() {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [activeShipmentSubtab, setActiveShipmentSubtab] = useState("current");
-  const [activeShipmentKpiSubtab, setActiveShipmentKpiSubtab] = useState("overview");
   const [items, setItems] = useState([]);
   const [kpis, setKpis] = useState(null);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
@@ -1425,7 +1410,6 @@ export default function App() {
   const [activeSupplyStatusPieLabel, setActiveSupplyStatusPieLabel] = useState(null);
   const [isAllInventoryKpisOpen, setIsAllInventoryKpisOpen] = useState(false);
   const [isAllShipmentKpisOpen, setIsAllShipmentKpisOpen] = useState(false);
-  const [isAllShipmentFlowMetricsOpen, setIsAllShipmentFlowMetricsOpen] = useState(false);
   const [isEditingPalletMap, setIsEditingPalletMap] = useState(false);
   const [savedPalletLayout, setSavedPalletLayout] = useState({});
   const [draftPalletLayout, setDraftPalletLayout] = useState({});
@@ -3241,64 +3225,6 @@ export default function App() {
       )
     )
   );
-  const localShipments = shipments.filter(
-    (shipment) => normalizeShipmentType(shipment.shipmentType) === "Local"
-  );
-  const internationalShipments = shipments.filter(
-    (shipment) => normalizeShipmentType(shipment.shipmentType) === "International"
-  );
-  const shipmentTimingMetrics = [
-    {
-      scope: "Local",
-      label: "Avg Days From Creation to Shipment",
-      value: averageShipmentDays(localShipments, "createdAt", "shippedAt"),
-    },
-    {
-      scope: "Local",
-      label: "Avg Time to Start Consolidation",
-      value: averageShipmentDays(localShipments, "createdAt", "consolidationStartedAt"),
-    },
-    {
-      scope: "Local",
-      label: "Avg Consolidation Time",
-      value: averageShipmentDays(localShipments, "consolidationStartedAt", "consolidationCompletedAt"),
-    },
-    {
-      scope: "Local",
-      label: "Avg Waiting Time to Ship",
-      value: averageShipmentDays(localShipments, "consolidationCompletedAt", "shippedAt"),
-    },
-    {
-      scope: "Local",
-      label: "Avg Delivery Time",
-      value: averageShipmentDays(localShipments, "shippedAt", "deliveryDate"),
-    },
-    {
-      scope: "International",
-      label: "Avg Days From Creation to Shipment",
-      value: averageShipmentDays(internationalShipments, "createdAt", "shippedAt"),
-    },
-    {
-      scope: "International",
-      label: "Avg Time to Start Consolidation",
-      value: averageShipmentDays(internationalShipments, "createdAt", "consolidationStartedAt"),
-    },
-    {
-      scope: "International",
-      label: "Avg Consolidation Time",
-      value: averageShipmentDays(internationalShipments, "consolidationStartedAt", "consolidationCompletedAt"),
-    },
-    {
-      scope: "International",
-      label: "Avg Waiting Time to Ship",
-      value: averageShipmentDays(internationalShipments, "consolidationCompletedAt", "shippedAt"),
-    },
-    {
-      scope: "International",
-      label: "Avg Delivery Time",
-      value: averageShipmentDays(internationalShipments, "shippedAt", "deliveryDate"),
-    },
-  ];
   // Past shipments from the Master Shipment Database, by type, plus the ones
   // tracked in this app (counted when created within the chosen years).
   const shipmentsByType = shipmentTypeOptions.map((type) => {
@@ -5012,37 +4938,10 @@ export default function App() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Shipment activity and outbound flow</h2>
+              <h2>Shipment activity</h2>
             </div>
           </div>
 
-          <div className="shipment-subtabs shipment-kpi-subtabs" role="tablist" aria-label="Shipment KPI views">
-            <button
-              type="button"
-              className={
-                activeShipmentKpiSubtab === "overview"
-                  ? "shipment-subtab active"
-                  : "shipment-subtab"
-              }
-              onClick={() => setActiveShipmentKpiSubtab("overview")}
-            >
-              Shipment Activity
-            </button>
-            <button
-              type="button"
-              className={
-                activeShipmentKpiSubtab === "flow-time"
-                  ? "shipment-subtab active"
-                  : "shipment-subtab"
-              }
-              onClick={() => setActiveShipmentKpiSubtab("flow-time")}
-            >
-              Shipment Flow Time
-            </button>
-          </div>
-
-          {activeShipmentKpiSubtab === "overview" ? (
-            <>
           <div className="shipment-kpi-overview-split">
             <div className="shipment-kpi-summary-pane">
               <div className="shipment-kpi-pane-header">
@@ -5160,46 +5059,6 @@ export default function App() {
               </div>
             </div>
           </div>
-            </>
-          ) : null}
-
-          {activeShipmentKpiSubtab === "flow-time" ? (
-            <div className="shipment-flow-time-view">
-          <div className="panel-header shipment-flow-metrics-header">
-            <div>
-              <h3>Shipment flow time metrics</h3>
-            </div>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => setIsAllShipmentFlowMetricsOpen(true)}
-            >
-              View all 10 KPIs
-            </button>
-          </div>
-
-          <div className="metrics-grid shipment-timing-grid shipment-timing-summary-grid">
-            {shipmentTimingMetrics
-              .filter((metric) => metric.label !== "Avg Consolidation Time")
-              .map((metric) => (
-              <MetricCard
-                key={`${metric.scope}-${metric.label}`}
-                label={`${metric.scope} ${metric.label}`}
-                value={formatAverageDays(metric.value)}
-                valueClassName="metric-value-compact"
-              />
-              ))}
-          </div>
-
-          <div className="kpi-note-card">
-            <p className="section-label">Next Metrics To Add</p>
-            <p>
-              Fill rate and request-to-shipment time will need request dates and requested quantities
-              added to the shipment data model.
-            </p>
-          </div>
-            </div>
-          ) : null}
         </section>
         </>
       ) : null}
@@ -5822,49 +5681,6 @@ export default function App() {
                   label="Near-Expiry Units In Shipments"
                   value={formatNumber(nearExpiryShipmentUnits)}
                 />
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {isAllShipmentFlowMetricsOpen ? (
-        <div
-          className="modal-backdrop"
-          role="presentation"
-          onClick={() => setIsAllShipmentFlowMetricsOpen(false)}
-        >
-          <div
-            className="shipment-modal inventory-kpi-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="shipment-flow-metrics-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="shipment-modal-header">
-              <div>
-                <h2 id="shipment-flow-metrics-modal-title">All 10 flow-time metrics</h2>
-              </div>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={() => setIsAllShipmentFlowMetricsOpen(false)}
-                aria-label="Close full shipment flow-time metric view"
-              >
-                x
-              </button>
-            </div>
-
-            <div className="shipment-modal-body">
-              <div className="metrics-grid inventory-kpi-modal-grid">
-                {shipmentTimingMetrics.map((metric) => (
-                  <MetricCard
-                    key={`${metric.scope}-${metric.label}`}
-                    label={`${metric.scope} ${metric.label}`}
-                    value={formatAverageDays(metric.value)}
-                    valueClassName="metric-value-compact"
-                  />
-                ))}
               </div>
             </div>
           </div>
