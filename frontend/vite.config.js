@@ -8,6 +8,8 @@ export default defineConfig({
       "/items": "http://127.0.0.1:8000",
       "/kpis": "http://127.0.0.1:8000",
       "/history": "http://127.0.0.1:8000",
+      "/finance": "http://127.0.0.1:8000",
+      "/chapter-scores": "http://127.0.0.1:8000",
     },
   },
 });

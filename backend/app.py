@@ -756,3 +756,25 @@ def get_past_shipments():
         print(f"Falling back to the past shipments snapshot: {exc}")
     with open(HISTORY_SHIPMENTS_SNAPSHOT_PATH, encoding="utf-8", newline="") as handle:
         return build_past_shipments(list(csv.DictReader(handle)))
+
+
+# ==============================
+# FINANCE + EXPANSION (merged in from financeDashboard and expansionDash)
+# ==============================
+from backend.finance import load_finance  # noqa: E402
+from backend.scores import load_scores  # noqa: E402
+
+
+@app.get("/finance")
+def finance():
+    return {**load_finance(), "pulledAt": datetime.utcnow().isoformat() + "Z"}
+
+
+@app.get("/chapter-scores")
+def chapter_scores():
+    try:
+        data, source = load_scores()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    # "snapshot" means the live sheet wasn't reachable
+    return {**data, "source": source, "pulledAt": datetime.utcnow().isoformat() + "Z"}
