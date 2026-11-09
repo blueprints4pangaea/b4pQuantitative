@@ -234,7 +234,7 @@ export default function Home({ filters, goTo }) {
           <DonatedValueChart years={yoy} title="" compact />
         </Card>
         <Card title="Global Distribution of Supplies" className="combo-home-chart combo-home-map">
-          <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} />
+          <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} maxHeight={chartH * 2 + 40} />
         </Card>
         <Card title="Local vs. International Shipments" className="combo-home-chart combo-home-split">
           <DestinationSplit types={byType} />
