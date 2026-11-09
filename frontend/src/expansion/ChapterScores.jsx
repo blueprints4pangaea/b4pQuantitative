@@ -85,17 +85,22 @@ function Standings({ rows, prev, picked, onPick }) {
 
   return (
     <div className="standings">
-      <div className="standings-axis" aria-hidden="true">
-        <span />
-        <div className="track-axis">
-          {/* band names start where each band starts */}
-          {BAND_ZONES.map((b) => (
-            <span key={b.name} style={{ left: `${b.min}%` }}>
-              {b.name} {b.min > 0 && b.min}
-            </span>
-          ))}
-        </div>
-        <span />
+      {/* the list runs in two columns, so the band axis is drawn above each */}
+      <div className="standings-axes" aria-hidden="true">
+        {[0, 1].map((col) => (
+          <div key={col} className="standings-axis">
+            <span />
+            <div className="track-axis">
+              {/* band names start where each band starts */}
+              {BAND_ZONES.map((b) => (
+                <span key={b.name} style={{ left: `${b.min}%` }} title={b.name}>
+                  {b.min > 0 ? b.min : ""}
+                </span>
+              ))}
+            </div>
+            <span />
+          </div>
+        ))}
       </div>
 
       <ul>
@@ -166,6 +171,11 @@ function Standings({ rows, prev, picked, onPick }) {
         <span>
           <i className="key-dot now" /> This semester, colored by band
         </span>
+        {[...BAND_ZONES].reverse().map((b) => (
+          <span key={b.name} className="band-key">
+            <i style={{ background: b.color }} /> {b.name} {b.min > 0 ? `${b.min}+` : `under ${BANDS[BANDS.length - 2].min}`}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -320,7 +330,7 @@ function TrendChart({ data, chapters, lines, avgLabel }) {
 function ScoreTable({ data, rows, sem }) {
   return (
     <details className="all-scores">
-      <summary>All scores by semester ({rows.length} chapters)</summary>
+      <summary>All Scores by Semester ({rows.length} chapters)</summary>
       <div className="table-wrap">
         <table className="health-table">
           <thead>
@@ -418,7 +428,7 @@ export default function ChapterScores({ data }) {
       <div className="scores-top">
         <div className="hero">
           <span className="eyebrow">
-            Average score · {sem}
+            Average Score, {sem}
             {groupLabel && ` · ${groupLabel}`}
           </span>
           <div className="hero-row">
@@ -436,7 +446,7 @@ export default function ChapterScores({ data }) {
 
         <div className="stat-tiles">
           <div className="stat-tile">
-            <span className="eyebrow">Chapters</span>
+            <span className="eyebrow">Active Chapters</span>
             <strong>{rows.length}</strong>
             <small>
               {[newOnes.length > 0 && `+${newOnes.length} new`, !filtered && summary.offboarded.length > 0 && `${summary.offboarded.length} left`]
@@ -445,7 +455,7 @@ export default function ChapterScores({ data }) {
             </small>
           </div>
           <div className="stat-tile" title={[names(movedUp), names(droppedBack)].filter(Boolean).join(" / ")}>
-            <span className="eyebrow">Stage changes</span>
+            <span className="eyebrow">Stage Changes</span>
             <strong>
               {summary.hasStages && summary.prevStageSem ? (
                 <>
@@ -458,7 +468,7 @@ export default function ChapterScores({ data }) {
             <small>{[names(movedUp), names(droppedBack)].filter(Boolean).join(" / ")}</small>
           </div>
           <div className="stat-tile">
-            <span className="eyebrow">Need attention</span>
+            <span className="eyebrow">Need Attention</span>
             <strong>{rows.filter((r) => r.needsAttention).length}</strong>
             <small>Weak, stage drop, or −{BIG_DROP}+ pts</small>
           </div>
@@ -468,7 +478,7 @@ export default function ChapterScores({ data }) {
       <div className="scores-grid">
         <div className="card">
           <div className="card-head">
-            <h3>Where chapters stand · {sem}</h3>
+            <h3>Chapter Standings, {sem}</h3>
             <p>Lowest first. Click a chapter to add it to the chart.</p>
           </div>
           <Standings rows={rows} prev={summary.prev} picked={picked} onPick={togglePick} />
@@ -476,7 +486,7 @@ export default function ChapterScores({ data }) {
 
         <div className="card">
           <div className="card-head">
-            <h3>Scores over time</h3>
+            <h3>Chapter Scores Over Time</h3>
             <p>
               {lines.length
                 ? "Click a chapter again to take it off."

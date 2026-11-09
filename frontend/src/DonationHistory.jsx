@@ -178,7 +178,7 @@ export function ChapterBreakdown({ chapters, visible }) {
   return (
     <div className="chapter-breakdown">
       <div className="donation-chart-header">
-        <h3>Donated value by chapter</h3>
+        <h3>Donated Value by Chapter</h3>
         <p className="donation-chart-detail">
           {active
             ? `${active.chapter}: ${formatCurrencyWhole(active.valuation)} · ${formatPercent(active.share)} · ${active.shipments} shipment${active.shipments === 1 ? "" : "s"}`
@@ -251,7 +251,7 @@ export function ChapterBreakdown({ chapters, visible }) {
  * Home reuses it so both look the same.
  * years: [{ year, valuation, pounds, shipments }]
  */
-export function DonatedValueChart({ years, visible = true, title = "Donated value by year", compact = false }) {
+export function DonatedValueChart({ years, visible = true, title = "Value of Supplies Donated by Year", compact = false }) {
   const [activeYear, setActiveYear] = useState(null);
   const gradientId = `donation-area-fill-${useId().replace(/:/g, "")}`;
   const maxValuation = Math.max(...years.map((entry) => entry.valuation), 1);

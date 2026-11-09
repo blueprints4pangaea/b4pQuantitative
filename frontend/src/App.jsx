@@ -3432,7 +3432,7 @@ export default function App({ embedded = false, onHeaderStats }) {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Every supply as a line item</h2>
+              <h2>Inventory Line Items</h2>
             </div>
             <div className="inventory-actions">
               <button
@@ -3872,7 +3872,7 @@ export default function App({ embedded = false, onHeaderStats }) {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Current operating snapshot</h2>
+              <h2>Current Operating Snapshot</h2>
             </div>
             <button
               type="button"
@@ -3896,7 +3896,7 @@ export default function App({ embedded = false, onHeaderStats }) {
             <div className="summary-card kpi-card-third kpi-pie-card">
               <div className="panel-header">
                 <div>
-                  <h3>By expiration window</h3>
+                  <h3>Units by Expiration Window</h3>
                 </div>
               </div>
 
@@ -3922,7 +3922,7 @@ export default function App({ embedded = false, onHeaderStats }) {
             <div className="summary-card kpi-card-third kpi-pie-card">
               <div className="panel-header">
                 <div>
-                  <h3>By supply category</h3>
+                  <h3>Units by Supply Category</h3>
                 </div>
                 <span className="pill">{formatNumber(uniqueCategories)} categories</span>
               </div>
@@ -3950,7 +3950,7 @@ export default function App({ embedded = false, onHeaderStats }) {
             <div className="summary-card kpi-card-third kpi-pie-card">
               <div className="panel-header">
                 <div>
-                  <h3>By unit price</h3>
+                  <h3>Units by Unit Price</h3>
                 </div>
               </div>
 
@@ -3979,7 +3979,7 @@ export default function App({ embedded = false, onHeaderStats }) {
           <div className="summary-card pallet-map-card">
             <div className="panel-header">
               <div>
-                <h3>Warehouse pallet layout</h3>
+                <h3>Warehouse Pallet Layout</h3>
               </div>
               <div className="pallet-map-actions">
                 {!isEditingPalletMap ? (
@@ -4607,7 +4607,7 @@ export default function App({ embedded = false, onHeaderStats }) {
               <section className="non-inventory-shipments-section">
                 <div className="non-inventory-shipments-heading">
                   <div>
-                    <h3>Document shipments outside inventory</h3>
+                    <h3>Non-Inventory Shipments</h3>
                   </div>
                   <div className="non-inventory-heading-actions">
                     <span>{nonInventoryShipments.length} documented</span>
@@ -4961,7 +4961,7 @@ export default function App({ embedded = false, onHeaderStats }) {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Shipment activity</h2>
+              <h2>Shipment Activity</h2>
             </div>
           </div>
 
@@ -4969,7 +4969,7 @@ export default function App({ embedded = false, onHeaderStats }) {
             <div className="shipment-kpi-summary-pane">
               <div className="shipment-kpi-pane-header">
                 <div>
-                  <h3>Current shipment activity</h3>
+                  <h3>Current Shipment Activity</h3>
                 </div>
                 <button
                   type="button"
@@ -4990,7 +4990,7 @@ export default function App({ embedded = false, onHeaderStats }) {
             <div className="shipment-kpi-current-table-panel">
               <div className="shipment-kpi-pane-header">
                 <div>
-                  <h3>Active shipment overview</h3>
+                  <h3>Active Shipment Overview</h3>
                 </div>
                 <button
                   type="button"
@@ -5069,7 +5069,7 @@ export default function App({ embedded = false, onHeaderStats }) {
               <div className="summary-card shipment-status-card">
                 <div className="panel-header">
                   <div>
-                    <h3>Shipments by current status</h3>
+                    <h3>Shipments by Current Status</h3>
                   </div>
                 </div>
 
@@ -5592,7 +5592,7 @@ export default function App({ embedded = false, onHeaderStats }) {
           >
             <div className="shipment-modal-header">
               <div>
-                <h2 id="inventory-kpi-modal-title">Full operating snapshot</h2>
+                <h2 id="inventory-kpi-modal-title">Full Operating Snapshot</h2>
               </div>
               <button
                 type="button"
@@ -5653,7 +5653,7 @@ export default function App({ embedded = false, onHeaderStats }) {
           >
             <div className="shipment-modal-header">
               <div>
-                <h2 id="shipment-kpi-modal-title">Full shipment activity snapshot</h2>
+                <h2 id="shipment-kpi-modal-title">Full Shipment Activity Snapshot</h2>
               </div>
               <button
                 type="button"

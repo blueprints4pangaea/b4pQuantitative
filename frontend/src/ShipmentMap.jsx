@@ -161,7 +161,7 @@ export default function ShipmentMap({ shipments, error: loadError, rangeLabel })
     : null;
   const loading = !error && (!shipments || !world);
 
-  const title = `Where our supplies have gone${rangeLabel ? `, ${rangeLabel}` : ""}`;
+  const title = `Global Distribution of Supplies${rangeLabel ? `, ${rangeLabel}` : ""}`;
 
   // The map drawing, shared by the card and the expanded view.
   function renderMap(maxHeight, onCountryClick) {

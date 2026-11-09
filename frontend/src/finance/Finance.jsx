@@ -1,5 +1,5 @@
 // Finance, ported from the Blueprints financeDashboard with every one of its
-// tabs: Overview & KPIs, Revenue, Cost, Chapters and Transactions.
+// tabs: Overview & KPIs, Revenue, Expenses, Chapters and Transactions.
 // Chapter and semester come from the shared filter bar; Year and Month are the
 // finance dashboard's own extra filters.
 // Shipping is not a finance category: shipping cost comes from the master
@@ -212,7 +212,7 @@ function Variance({ scoped, period }) {
         </span>
       </span>
       <span>
-        Cost{" "}
+        Expenses{" "}
         <span className={cur.cost <= prev.cost ? "combo-good" : "combo-bad"}>
           {signed(cur.cost - prev.cost)}
           {pct(cur.cost, prev.cost)}
@@ -230,21 +230,21 @@ function Overview({ rows, scoped, period, filters, shippingCost }) {
     <>
       <Variance scoped={scoped} period={period} />
       <MetricRow>
-        <Metric label="Total revenue" value={formatUsd(t.revenue)} hint={`${formatNum(rows.filter((r) => r.flow === "revenue").length)} entries`} />
-        <Metric label="Total expenses" value={formatUsd(t.cost)} hint="Not counting shipping" />
+        <Metric label="Total Revenue" value={formatUsd(t.revenue)} hint={`${formatNum(rows.filter((r) => r.flow === "revenue").length)} entries`} />
+        <Metric label="Total Expenses" value={formatUsd(t.cost)} hint="Not counting shipping" />
         <Metric
-          label="Net margin"
+          label="Net Margin"
           value={t.net >= 0 ? `+${formatUsd(t.net)}` : formatUsd(t.net)}
           tone={t.net < 0 ? "bad" : undefined}
           hint={t.revenue ? `${formatPct(t.net / t.revenue)} operating margin` : undefined}
         />
         <Metric label="Transactions" value={formatNum(rows.length)} />
-        <Metric label="Active chapters" value={formatNum(activeChapters)} hint="With entries in this period" />
-        <Metric label="Shipping cost" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
+        <Metric label="Active Chapters" value={formatNum(activeChapters)} hint="With entries in this period" />
+        <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
       <Card
-        title="Money in, money out"
-        subtitle={`Revenue and cost bars with the net line, by month · ${describeFilters(filters)}${periodLabel(period) ? ` · ${periodLabel(period)}` : ""}`}
+        title="Revenue, Expenses and Net Income"
+        subtitle={`Monthly revenue and expenses, with net income as a line · ${describeFilters(filters)}${periodLabel(period) ? ` · ${periodLabel(period)}` : ""}`}
         actions={
           <div className="combo-metric-inline">
             <p className="title-block-label">Total net</p>
@@ -268,10 +268,10 @@ function periodChart(rows, filters) {
 }
 
 const BIFURCATION = [
-  { id: "all", label: "All inflows" },
+  { id: "all", label: "All Inflows" },
   { id: "grants", label: "Grants & Sponsorships" },
   { id: "donations", label: "Donations & Fundraisers" },
-  { id: "other", label: "Other streams" },
+  { id: "other", label: "Other Streams" },
 ];
 
 function bifurcate(r, tab) {
@@ -293,23 +293,23 @@ function Revenue({ rows, filters }) {
   return (
     <>
       <MetricRow>
-        <Metric label="Total revenue" value={formatUsd(sum(mine))} />
+        <Metric label="Total Revenue" value={formatUsd(sum(mine))} />
         <Metric label="Entries" value={formatNum(mine.length)} />
         <Metric label="Sources" value={formatNum(bySource.length)} />
-        <Metric label="Biggest source" value={bySource[0]?.name ?? "—"} hint={bySource[0] ? formatUsd(bySource[0].value) : undefined} />
+        <Metric label="Largest Source" value={bySource[0]?.name ?? "—"} hint={bySource[0] ? formatUsd(bySource[0].value) : undefined} />
       </MetricRow>
-      <Card title={`Revenue by ${chart.by}`} subtitle={describeFilters(filters)}>
+      <Card title={`Revenue by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
         <BarChart data={chart.data} series={[{ name: "Revenue", color: REVENUE_COLOR }]} format={formatUsdShort} />
       </Card>
       <div className="combo-two-col">
-        <Card title="Revenue by source" subtitle="Who the money comes from">
+        <Card title="Revenue by Source" subtitle="Who the money comes from">
           <ShareBars items={bySource} format={formatUsd} color={REVENUE_COLOR} />
         </Card>
-        <Card title="Revenue by program category" subtitle="Grants, donations, sponsorships and fundraising">
+        <Card title="Revenue by Program Category" subtitle="Grants, donations, sponsorships and fundraising">
           <ShareBars items={groupSum(mine, "category")} format={formatUsd} color={REVENUE_COLOR} />
         </Card>
       </div>
-      <Card title="Revenue sources" subtitle="Every stream, biggest first">
+      <Card title="Revenue Sources" subtitle="Every stream, biggest first">
         <Table
           columns={[
             { key: "name", label: "Source" },
@@ -321,7 +321,7 @@ function Revenue({ rows, filters }) {
           rowKey={(r) => r.name}
         />
       </Card>
-      <Card title="Revenue ledger" subtitle="Every inbound grant, sponsorship, donation and fundraising receipt">
+      <Card title="Revenue Ledger" subtitle="Every inbound grant, sponsorship, donation and fundraising receipt">
         <Subtabs tabs={BIFURCATION} value={split} onChange={setSplit} />
         <Ledger key={split} rows={mine.filter((r) => bifurcate(r, split))} columns={ledgerColumns("revenue")} placeholder="Search the revenue ledger" />
       </Card>
@@ -338,19 +338,19 @@ function Cost({ rows, filters, shippingCost }) {
   return (
     <>
       <MetricRow>
-        <Metric label="Total expenses" value={formatUsd(sum(mine))} hint="Not counting shipping" />
+        <Metric label="Total Expenses" value={formatUsd(sum(mine))} hint="Not counting shipping" />
         <Metric label="Entries" value={formatNum(mine.length)} />
-        <Metric label="Biggest category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
-        <Metric label="Shipping cost" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
+        <Metric label="Largest Category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
+        <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
-      <Card title={`Cost by ${chart.by}`} subtitle={describeFilters(filters)}>
-        <BarChart data={chart.data} series={[{ name: "Cost", color: COST_COLOR }]} format={formatUsdShort} />
+      <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
+        <BarChart data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
       </Card>
       <div className="combo-two-col">
-        <Card title="Cost by category" subtitle="Where the money goes">
+        <Card title="Expenses by Category" subtitle="Where the money goes">
           <Donut items={byCategory} format={formatUsd} centerLabel="Total cost" />
         </Card>
-        <Card title="Top payees" subtitle="Vendors ranked by total spent">
+        <Card title="Top Payees" subtitle="Vendors ranked by total spent">
           <Table
             columns={[
               { key: "rank", label: "Rank", render: (r) => payees.indexOf(r) + 1 },
@@ -364,7 +364,7 @@ function Cost({ rows, filters, shippingCost }) {
           />
         </Card>
       </div>
-      <Card title="Expense ledger" subtitle="Every cost entry, newest first">
+      <Card title="Expense Ledger" subtitle="Every cost entry, newest first">
         <Ledger rows={mine} columns={ledgerColumns("cost")} placeholder="Search the expense ledger" />
       </Card>
     </>
@@ -449,7 +449,7 @@ function Chapters({ rows, filters, setFilters }) {
   const money = (key) => (r) => formatUsd(r[key]);
   return (
     <Card
-      title="Chapter finances"
+      title="Chapter Financial Summary"
       subtitle="Every chapter and HQ side by side for the chosen period. Click a chapter to filter the dashboard to it."
       actions={
         <button type="button" className="secondary-button" onClick={() => exportCsv(shown)}>
@@ -482,7 +482,7 @@ function Chapters({ rows, filters, setFilters }) {
           },
           { key: "tier", label: head("tier", "Tier"), render: (r) => <span className="combo-tier">{r.tier}</span> },
           { key: "revenue", label: head("revenue", "Revenue"), align: "right", render: money("revenue") },
-          { key: "cost", label: head("cost", "Cost"), align: "right", render: money("cost") },
+          { key: "cost", label: head("cost", "Expenses"), align: "right", render: money("cost") },
           {
             key: "net",
             label: head("net", "Net"),
@@ -526,7 +526,7 @@ function AllTransactions({ rows }) {
         <select className="shipment-filter-select" value={type} onChange={on(setType)} aria-label="Type">
           <option value="all">Revenue and cost</option>
           <option value="revenue">Revenue</option>
-          <option value="cost">Cost</option>
+          <option value="cost">Expenses</option>
         </select>
         <select className="shipment-filter-select" value={chapter} onChange={on(setChapter)} aria-label="Chapter">
           <option value="all">Every chapter</option>
@@ -547,7 +547,7 @@ function AllTransactions({ rows }) {
       <Table
         columns={[
           { key: "date", label: "Date", render: (r) => <span className="combo-nowrap">{r.date}</span> },
-          { key: "flow", label: "Type", render: (r) => <span className={r.flow === "revenue" ? "combo-good" : "combo-bad"}>{r.flow === "revenue" ? "Revenue" : "Cost"}</span> },
+          { key: "flow", label: "Type", render: (r) => <span className={r.flow === "revenue" ? "combo-good" : "combo-bad"}>{r.flow === "revenue" ? "Revenue" : "Expense"}</span> },
           { key: "entity", label: "Chapter", render: (r) => showEntity(r.entity) },
           { key: "category", label: "Category" },
           { key: "source", label: "From / paid to" },
@@ -646,7 +646,7 @@ function AddEntry({ chapters, onSaved }) {
 const TABS = [
   { id: "overview", label: "Overview & KPIs" },
   { id: "revenue", label: "Revenue" },
-  { id: "cost", label: "Cost" },
+  { id: "cost", label: "Expenses" },
   { id: "chapters", label: "Chapters" },
   { id: "transactions", label: "Transactions" },
 ];
@@ -701,10 +701,10 @@ export default function Finance({ filters, setFilters }) {
       {tab === "chapters" && <Chapters rows={everyone} filters={filters} setFilters={setFilters} />}
       {tab === "transactions" && (
         <>
-          <Card title="Add an entry" subtitle="Goes straight into the Revenue or Expenses Google Sheet">
+          <Card title="Add a Transaction" subtitle="Goes straight into the Revenue or Expenses Google Sheet">
             <AddEntry chapters={chapterOptions(fin.rows.map((r) => r.entity))} onSaved={sync} />
           </Card>
-          <Card title="All transactions" subtitle={`${describeFilters(filters)}${periodLabel(period) ? ` · ${periodLabel(period)}` : ""}`}>
+          <Card title="All Transactions" subtitle={`${describeFilters(filters)}${periodLabel(period) ? ` · ${periodLabel(period)}` : ""}`}>
             <AllTransactions rows={rows} />
           </Card>
         </>

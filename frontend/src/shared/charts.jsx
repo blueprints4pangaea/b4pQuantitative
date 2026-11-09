@@ -242,7 +242,7 @@ export function MoneyFlowChart({ data, colors, format = String, height = 300 }) 
     <div className="combo-chart">
       <div className="combo-legend">
         <span><i style={{ background: colors.revenue }} />Revenue</span>
-        <span><i style={{ background: colors.cost }} />Cost</span>
+        <span><i style={{ background: colors.cost }} />Expenses</span>
         <span><i style={{ background: colors.net }} />Net</span>
       </div>
       <div className="combo-chart-scroll" ref={ref}>

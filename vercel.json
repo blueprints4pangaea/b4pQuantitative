@@ -25,10 +25,6 @@
       "dest": "/api/index.py"
     },
     {
-      "src": "/chapter-shipments(.*)",
-      "dest": "/api/index.py"
-    },
-    {
       "handle": "filesystem"
     },
     {

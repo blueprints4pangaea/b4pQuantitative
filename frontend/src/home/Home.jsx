@@ -208,7 +208,7 @@ export default function Home({ filters, goTo }) {
             series={[
               { name: "Net", color: "#0035a2" },
               { name: "Revenue", color: REVENUE_COLOR, dashed: true },
-              { name: "Cost", color: COST_COLOR, dashed: true },
+              { name: "Expenses", color: COST_COLOR, dashed: true },
             ]}
             format={formatUsdShort}
             height={chartH + 34}

@@ -17,7 +17,7 @@ const formatWholeCurrency = (value) =>
  * types: [{ type, count, valuation, pounds }]
  * withTotals: show value and pounds under each bar (only when past shipments are loaded)
  */
-export default function ShipmentMix({ types, withTotals = true, title = "Shipments by destination type" }) {
+export default function ShipmentMix({ types, withTotals = true, title = "Shipments by Destination Type" }) {
   const maxTypeCount = Math.max(...types.map((entry) => entry.count), 1);
   return (
     <div className="shipment-mix">

@@ -10,7 +10,6 @@ export default defineConfig({
       "/history": "http://127.0.0.1:8000",
       "/finance": "http://127.0.0.1:8000",
       "/chapter-scores": "http://127.0.0.1:8000",
-      "/chapter-shipments": "http://127.0.0.1:8000",
     },
   },
 });

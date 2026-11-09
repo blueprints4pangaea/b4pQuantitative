@@ -874,12 +874,3 @@ def chapter_scores():
     # "snapshot" means the live sheet wasn't reachable
     return {**data, "source": source, "pulledAt": datetime.utcnow().isoformat() + "Z"}
 
-
-from backend.chapter_shipments import load_shipments as load_chapter_shipments  # noqa: E402
-
-
-@app.get("/chapter-shipments")
-def chapter_shipments():
-    # hand-copied from each chapter's Shipment History doc. These include
-    # shipments that aren't in the master shipment sheet, so both are kept
-    return load_chapter_shipments()
