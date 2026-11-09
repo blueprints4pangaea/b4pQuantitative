@@ -190,9 +190,11 @@ export function LineChart({ data, series, format = String, height = 210 }) {
 /** Horizontal share bars, largest first. items: [{ name, value }] */
 export function ShareBars({ items, format = String, color = SERIES[0], limit = 8 }) {
   if (!items.length) return <p className="combo-empty">Nothing to show for these filters.</p>;
-  const sorted = [...items].sort((a, b) => b.value - a.value);
+  // a category already called "Other" joins the rolled-up remainder, so "Other" shows once
+  const own = items.filter((x) => x.name === "Other").reduce((s, x) => s + x.value, 0);
+  const sorted = items.filter((x) => x.name !== "Other").sort((a, b) => b.value - a.value);
   const top = sorted.slice(0, limit);
-  const rest = sorted.slice(limit).reduce((s, x) => s + x.value, 0);
+  const rest = sorted.slice(limit).reduce((s, x) => s + x.value, 0) + own;
   if (rest > 0) top.push({ name: "Other", value: rest });
   const total = sorted.reduce((s, x) => s + x.value, 0) || 1;
   const max = Math.max(...top.map((x) => x.value)) || 1;
@@ -289,9 +291,11 @@ export function MoneyFlowChart({ data, colors, format = String, height = 300 }) 
 export function Donut({ items, format = String, centerLabel = "Total", limit = 6 }) {
   const [hover, setHover] = useState(null);
   if (!items.length) return <p className="combo-empty">Nothing to show for these filters.</p>;
-  const sorted = [...items].sort((a, b) => b.value - a.value);
+  // a category already called "Other" joins the rolled-up remainder, so "Other" shows once
+  const own = items.filter((x) => x.name === "Other").reduce((s, x) => s + x.value, 0);
+  const sorted = items.filter((x) => x.name !== "Other").sort((a, b) => b.value - a.value);
   const top = sorted.slice(0, limit);
-  const rest = sorted.slice(limit).reduce((s, x) => s + x.value, 0);
+  const rest = sorted.slice(limit).reduce((s, x) => s + x.value, 0) + own;
   if (rest > 0) top.push({ name: "Other", value: rest });
   const total = top.reduce((s, x) => s + x.value, 0) || 1;
   const R = 70;

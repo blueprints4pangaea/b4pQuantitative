@@ -108,6 +108,8 @@ export default function Shell() {
               <em>Blueprints for Pangaea</em>
               {route.tab === "home" ? "Dashboard" : `${TABS.find((t) => t.id === route.tab).label} Dashboard`}
             </h1>
+            {/* a tab can show its data status here, e.g. Finance's "Live from Google Sheets · Sync now" */}
+            <div id="combo-header-status" className="combo-header-status" />
           </div>
           {showFilters && (
             <>

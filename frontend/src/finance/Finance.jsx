@@ -11,7 +11,7 @@ import { HQ } from "../shared/chapters";
 import { describeFilters, matchChapters, matchEntity, matchSemester, useFinance, useShipments } from "../shared/data";
 import { formatMonth, formatNum, formatPct, formatUsd, formatUsdShort } from "../shared/format";
 import { sortSemesters } from "../shared/semester";
-import { COST_COLOR, Card, ErrorText, Loading, Metric, MetricRow, Notice, REVENUE_COLOR, Subtabs, Table } from "../shared/ui";
+import { COST_COLOR, Card, ErrorText, HeaderStatus, Loading, Metric, MetricRow, Notice, REVENUE_COLOR, Subtabs, Table } from "../shared/ui";
 
 const NET_COLOR = "#0035a2";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -135,22 +135,25 @@ const ledgerColumns = (flow) => [
 
 // --- header pieces ---
 
+/** Data status, shown in the page header under the title. */
 function StatusBar({ fin, onSync, syncing }) {
   const live = Object.values(fin.origins).filter((o) => o.origin === "sheet").length;
   const all = Object.values(fin.origins).length;
   const pulled = fin.data?.pulledAt ? new Date(fin.data.pulledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "—";
   return (
-    <p className="combo-fineprint combo-status-line" aria-live="polite">
-      <span>
-        <i className={`combo-status-dot${live === all && all ? " live" : ""}`} />
-        {live === all && all ? "Live from Google Sheets" : live ? "Partly live, partly sample data" : "Sample data"}
-      </span>
-      <span>Last synced {pulled}</span>
-      <span>{formatNum(fin.rows.length)} records</span>
-      <button type="button" className="combo-link-button" onClick={onSync} disabled={syncing}>
-        {syncing ? "Syncing…" : "Sync now"}
-      </button>
-    </p>
+    <HeaderStatus>
+      <p className="combo-fineprint combo-status-line" aria-live="polite">
+        <span>
+          <i className={`combo-status-dot${live === all && all ? " live" : ""}`} />
+          {live === all && all ? "Live from Google Sheets" : live ? "Partly live, partly sample data" : "Sample data"}
+        </span>
+        <span>Last synced {pulled}</span>
+        <span>{formatNum(fin.rows.length)} records</span>
+        <button type="button" className="combo-link-button" onClick={onSync} disabled={syncing}>
+          {syncing ? "Syncing…" : "Sync now"}
+        </button>
+      </p>
+    </HeaderStatus>
   );
 }
 
@@ -332,8 +335,6 @@ function Revenue({ rows, filters }) {
 function Cost({ rows, filters, shippingCost }) {
   const mine = rows.filter((r) => r.flow === "cost");
   const byCategory = groupSum(mine, "category");
-  const payees = groupSum(mine, "source");
-  const total = sum(mine) || 1;
   const chart = periodChart(mine, filters);
   return (
     <>
@@ -342,25 +343,12 @@ function Cost({ rows, filters, shippingCost }) {
         <Metric label="Largest Category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
         <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
-      <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
-        <LineChart height={240} data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
-      </Card>
-      <div className="combo-two-col">
-        <Card title="Expenses by Category" subtitle="Where the money goes">
-          <Donut items={byCategory} format={formatUsd} centerLabel="Total cost" />
+      <div className="combo-chart-side">
+        <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
+          <LineChart height={330} data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
         </Card>
-        <Card title="Top Payees" subtitle="Vendors ranked by total spent">
-          <Table
-            columns={[
-              { key: "rank", label: "Rank", render: (r) => payees.indexOf(r) + 1 },
-              { key: "name", label: "Payee" },
-              { key: "count", label: "Entries", align: "right" },
-              { key: "value", label: "Total spent", align: "right", render: (r) => formatUsd(r.value) },
-              { key: "share", label: "Share", align: "right", render: (r) => formatPct(r.value / total) },
-            ]}
-            rows={payees.slice(0, 12)}
-            rowKey={(r) => r.name}
-          />
+        <Card title="Expenses by Category" subtitle="Where the money goes" className="combo-side-donut">
+          <Donut items={byCategory} format={formatUsd} centerLabel="Total cost" />
         </Card>
       </div>
       <Card title="Expense Ledger" subtitle="Every cost entry, newest first">

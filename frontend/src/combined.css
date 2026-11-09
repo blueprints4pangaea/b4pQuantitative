@@ -1148,3 +1148,40 @@ textarea {
 /* Finance's Year and Month sit inside the shared filter bar */
 .combo-extra-filters { display: contents; }
 .combo-extra-filters .shipment-filter-select { min-width: 120px; }
+
+/* Finance > Expenses: the period chart takes most of the row, the category donut sits on its right */
+.combo-chart-side {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.combo-side-donut .combo-donut {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.combo-side-donut .combo-donut > :first-child {
+  align-self: center;
+}
+
+.combo-side-donut .combo-donut-legend {
+  flex: none;
+  align-content: start;
+}
+
+@media (max-width: 1100px) {
+  .combo-chart-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* data status (Finance) sits in the header, under the page title */
+.combo-header-status:empty {
+  display: none;
+}
+
+.combo-header-status .combo-fineprint {
+  margin: 6px 0 0;
+}

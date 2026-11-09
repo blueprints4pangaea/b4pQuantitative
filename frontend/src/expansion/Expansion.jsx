@@ -1,7 +1,7 @@
 // Expansion, moved in from expansionDash: chapter scores. The chapter-doc
 // shipments it used to show here are merged into Operations and Home instead.
 import { useScores } from "../shared/data";
-import { ErrorText, Loading } from "../shared/ui";
+import { ErrorText, HeaderStatus, Loading } from "../shared/ui";
 import ChapterScores from "./ChapterScores";
 
 export default function Expansion() {
@@ -10,7 +10,9 @@ export default function Expansion() {
   return (
     <div className="combo-stack expansion-scope">
       {scores.data?.source === "snapshot" && (
-        <p className="combo-fineprint">Showing a saved copy of the scores sheet. Live data turns on once the sheet is connected.</p>
+        <HeaderStatus>
+          <p className="combo-fineprint">Showing a saved copy of the scores sheet. Live data turns on once the sheet is connected.</p>
+        </HeaderStatus>
       )}
       {scores.loading && <Loading what="chapter scores" />}
       {scores.error && <ErrorText>{scores.error}</ErrorText>}
