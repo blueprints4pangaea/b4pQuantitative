@@ -1,7 +1,6 @@
 // Home: the few numbers people check most, from each area, plus the ops
 // donation charts (by year, map, destination type, by chapter) and net finances.
-import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../shared/api";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChapterBreakdown, DonatedValueChart } from "../DonationHistory";
 import ShipmentMap from "../ShipmentMap";
 import { LineChart } from "../shared/charts";
@@ -34,21 +33,53 @@ function DestinationSplit({ types }) {
   );
 }
 
-/** Height for each chart, so the two chart rows fill what's left of the window. */
-function useChartHeight() {
-  const calc = () => Math.round(Math.min(230, Math.max(140, window.innerHeight / 2 - 290)));
-  const [h, setH] = useState(calc);
-  useEffect(() => {
-    const on = () => setH(calc());
+/** "▲ 12 vs 2025" under a tile; up is green unless upIsBad (e.g. expenses). */
+function VsLastYear({ cur, prev, year, format, upIsBad = false }) {
+  if (cur == null || prev == null || !year) return null;
+  const diff = cur - prev;
+  const good = upIsBad ? diff <= 0 : diff >= 0;
+  return (
+    <span className={good ? "combo-good" : "combo-bad"}>
+      {diff >= 0 ? "▲" : "▼"} {format(Math.abs(diff))} <span className="combo-vs">vs {year}</span>
+    </span>
+  );
+}
+
+// Wide screens fit Home in one window: the map spans two rows on the left,
+// the four smaller charts sit in a 2x2 grid on the right.
+const ONE_SCREEN_MIN_WIDTH = 1200;
+
+/** Chart sizes, from the window height left below the KPI cards. */
+function useChartSize(chartsRef) {
+  const calc = () => {
+    const top = chartsRef.current ? chartsRef.current.getBoundingClientRect().top + window.scrollY : 420;
+    const avail = window.innerHeight - top - 78; // the page keeps its bottom padding
+    if (window.innerWidth < ONE_SCREEN_MIN_WIDTH) {
+      const h = Math.round(Math.min(230, Math.max(140, window.innerHeight / 2 - 290)));
+      return { chartH: h, mapH: h * 2 + 40, gridH: null };
+    }
+    const gridH = Math.max(440, avail);
+    const row = (gridH - 10) / 2;
+    return {
+      gridH,
+      chartH: Math.round(Math.min(260, Math.max(110, row - 100))),
+      // the split card (about 150px) and the map card's title and legend take the rest
+      mapH: Math.round(Math.max(140, gridH - 300)),
+    };
+  };
+  const [size, setSize] = useState({ chartH: 180, mapH: 400, gridH: null });
+  useLayoutEffect(() => {
+    const on = () => setSize(calc());
+    on();
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
   }, []);
-  return h;
+  return size;
 }
 
 export default function Home({ filters, goTo }) {
-  const chartH = useChartHeight();
-  const kpis = useApi("/kpis");
+  const chartsRef = useRef(null);
+  const { chartH, mapH, gridH } = useChartSize(chartsRef);
   const ships = useShipments();
   const fin = useFinance();
   const scores = useScores();
@@ -67,6 +98,20 @@ export default function Home({ filters, goTo }) {
     });
   }, [ships.rows, filters]);
   const lastTwo = yoy.slice(-2);
+  const [prevYear, curYear] = lastTwo.length === 2 ? lastTwo : [null, null];
+
+  // finance this year vs last year, for the chapter picked (semester filter ignored, like the year chart)
+  const finYoy = useMemo(() => {
+    const rows = filterFinance(fin.rows, { ...filters, semester: "all" });
+    const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort();
+    if (years.length < 2) return null;
+    const [py, cy] = years.slice(-2);
+    return {
+      year: py,
+      prev: financeTotals(rows.filter((r) => r.date.startsWith(py))),
+      cur: financeTotals(rows.filter((r) => r.date.startsWith(cy))),
+    };
+  }, [fin.rows, filters]);
 
   // the same breakdowns Operations shows beside its map, for the filtered shipments
   const byType = useMemo(
@@ -127,19 +172,43 @@ export default function Home({ filters, goTo }) {
   return (
     <div className="combo-home" style={{ "--home-chart-h": `${chartH}px` }}>
       <div className="combo-home-kpis">
-        <Card title="Operations Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
+        <Card title="Operations Overview" className="combo-home-card combo-home-card-two" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
-            <Metric label="HQ Units on Hand" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations")} />
-            <Metric label="HQ Stock Value" value={loading(kpis) ?? formatUsdShort(kpis.data.total_value)} onClick={() => goTo("operations")} />
-            <Metric label="Total Shipments" value={loading(ships) ?? formatNum(shipRows.length)} onClick={() => goTo("operations")} />
-            <Metric label="Value Shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
+            <Metric
+              label="Total Shipments"
+              value={loading(ships) ?? formatNum(shipRows.length)}
+              hint={curYear && <VsLastYear cur={curYear.shipments} prev={prevYear.shipments} year={prevYear.year} format={formatNum} />}
+              onClick={() => goTo("operations")}
+            />
+            <Metric
+              label="Value Shipped"
+              value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))}
+              hint={curYear && <VsLastYear cur={curYear.valuation} prev={prevYear.valuation} year={prevYear.year} format={formatUsdShort} />}
+              onClick={() => goTo("operations")}
+            />
           </div>
         </Card>
         <Card title="Financial Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
-            <Metric label="Total Revenue" value={loading(fin) ?? formatUsdShort(t.revenue)} onClick={() => goTo("finance")} />
-            <Metric label="Total Expenses" value={loading(fin) ?? formatUsdShort(t.cost)} onClick={() => goTo("finance")} />
-            <Metric label="Net Income" value={loading(fin) ?? formatUsdShort(t.net)} tone={t.net < 0 ? "bad" : undefined} onClick={() => goTo("finance")} />
+            <Metric
+              label="Total Revenue"
+              value={loading(fin) ?? formatUsdShort(t.revenue)}
+              hint={finYoy && <VsLastYear cur={finYoy.cur.revenue} prev={finYoy.prev.revenue} year={finYoy.year} format={formatUsdShort} />}
+              onClick={() => goTo("finance")}
+            />
+            <Metric
+              label="Total Expenses"
+              value={loading(fin) ?? formatUsdShort(t.cost)}
+              hint={finYoy && <VsLastYear cur={finYoy.cur.cost} prev={finYoy.prev.cost} year={finYoy.year} format={formatUsdShort} upIsBad />}
+              onClick={() => goTo("finance")}
+            />
+            <Metric
+              label="Net Income"
+              value={loading(fin) ?? formatUsdShort(t.net)}
+              tone={t.net < 0 ? "bad" : undefined}
+              hint={finYoy && <VsLastYear cur={finYoy.cur.net} prev={finYoy.prev.net} year={finYoy.year} format={formatUsdShort} />}
+              onClick={() => goTo("finance")}
+            />
             <Metric label="Shipping Costs" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
           </div>
         </Card>
@@ -164,7 +233,7 @@ export default function Home({ filters, goTo }) {
         </Card>
       </div>
 
-      <div className="combo-home-charts">
+      <div className="combo-home-charts" ref={chartsRef} style={gridH ? { height: `${gridH}px` } : undefined}>
         <Card
           title="Value of Supplies Donated"
           className="combo-home-chart combo-home-year"
@@ -185,12 +254,15 @@ export default function Home({ filters, goTo }) {
         >
           <DonatedValueChart years={yoy} title="" compact />
         </Card>
-        <Card title="Global Distribution of Supplies" className="combo-home-chart combo-home-map">
-          <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} />
-        </Card>
-        <Card title="Local vs. International Shipments" className="combo-home-chart combo-home-split">
-          <DestinationSplit types={byType} />
-        </Card>
+        {/* map with the local/international split under it (on wide screens they share the left column) */}
+        <div className="combo-home-left">
+          <Card title="Global Distribution of Supplies" className="combo-home-chart combo-home-map">
+            <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} maxHeight={mapH} />
+          </Card>
+          <Card title="Local vs. International Shipments" className="combo-home-chart combo-home-split">
+            <DestinationSplit types={byType} />
+          </Card>
+        </div>
         <Card title="Donated Value by Chapter" className="combo-home-chart combo-home-chapters">
           {byChapter.length ? <ChapterBreakdown chapters={byChapter} visible /> : <p className="combo-empty">Nothing to show for these filters.</p>}
         </Card>

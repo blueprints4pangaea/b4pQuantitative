@@ -1185,3 +1185,65 @@ textarea {
 .combo-header-status .combo-fineprint {
   margin: 6px 0 0;
 }
+
+/* Home: Operations Overview has two tiles, so they share the full card width */
+.combo-home-card-two .combo-home-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.combo-vs {
+  color: var(--bp-ink-faint);
+  font-weight: 500;
+}
+
+.combo-home-metrics .combo-metric-hint {
+  white-space: nowrap;
+}
+
+/* Home on wide screens: everything fits one window. Left column: map with the
+   local/international split under it. Right: the year chart across the top,
+   net finances and chapters side by side under it. */
+.combo-home-left {
+  display: contents;
+}
+
+@media (min-width: 1200px) {
+  .combo-home-charts {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "left year year"
+      "left net chapters";
+  }
+
+  .combo-home-left {
+    grid-area: left;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  .combo-home-left .combo-home-map {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .combo-home-charts > .summary-card,
+  .combo-home-left > .summary-card {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .combo-home-chart .chapter-breakdown-body {
+    grid-template-columns: minmax(80px, 110px) minmax(0, 1fr);
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .combo-home-chart .chapter-legend button {
+    grid-template-columns: 8px minmax(0, 1fr) auto 34px;
+    gap: 6px;
+    font-size: 0.76rem;
+  }
+}
