@@ -2,6 +2,7 @@
 // value of supplies donated year over year, and net finances over time.
 import { useMemo } from "react";
 import { useApi } from "../shared/api";
+import { DonatedValueChart } from "../DonationHistory";
 import { LineChart } from "../shared/charts";
 import { HQ } from "../shared/chapters";
 import { describeFilters, filterShipments, matchChapters, useFinance, useScores, useShipments } from "../shared/data";
@@ -27,10 +28,13 @@ export default function Home({ filters, goTo }) {
   const yoy = useMemo(() => {
     const rows = ships.rows.filter((s) => matchChapters(s.chapters, filters));
     const years = [...new Set(rows.map((r) => r.year))].sort();
-    return years.map((y) => ({ label: String(y), values: [add(rows.filter((r) => r.year === y), "valuation")] }));
+    return years.map((y) => {
+      const inYear = rows.filter((r) => r.year === y);
+      return { year: y, valuation: add(inYear, "valuation"), pounds: add(inYear, "pounds"), shipments: inYear.length };
+    });
   }, [ships.rows, filters]);
   const lastTwo = yoy.slice(-2);
-  const yoyChange = lastTwo.length === 2 && lastTwo[0].values[0] ? lastTwo[1].values[0] / lastTwo[0].values[0] - 1 : null;
+  const yoyChange = lastTwo.length === 2 && lastTwo[0].valuation ? lastTwo[1].valuation / lastTwo[0].valuation - 1 : null;
 
   const net = useMemo(() => {
     const bySemester = filters.semester === "all";
@@ -98,7 +102,7 @@ export default function Home({ filters, goTo }) {
           title="Value of supplies donated, year over year"
           subtitle={`${filters.chapter === "all" ? "All of B4P" : filters.chapter === "chapters" ? "All chapters" : filters.chapter === HQ ? "HQ (UMich)" : filters.chapter}${yoyChange != null ? ` · ${yoyChange >= 0 ? "+" : ""}${formatPct(yoyChange)} vs the year before` : ""}`}
         >
-          <LineChart data={yoy} series={[{ name: "Value of supplies donated", color: REVENUE_COLOR }]} format={formatUsdShort} />
+          <DonatedValueChart years={yoy} title="" compact />
         </Card>
         <Card title="Net finances" subtitle={`Revenue minus cost by ${filters.semester === "all" ? "semester" : "month"} · ${describeFilters(filters)}`}>
           <LineChart

@@ -656,3 +656,21 @@
 .combo-toolbar-scope .search-input {
   flex: 1 1 240px;
 }
+
+/* Home reuses the ops "Donated value by year" chart, a little shorter so Home fits one screen */
+.donation-year-compact .donation-chart-header {
+  margin-top: 0;
+}
+
+.donation-year-compact .donation-chart-header h3:empty {
+  display: none;
+}
+
+.donation-year-compact .donation-chart {
+  margin-top: 6px;
+  padding: 18px 14px 8px;
+}
+
+.donation-year-compact .donation-plot {
+  height: 150px;
+}
