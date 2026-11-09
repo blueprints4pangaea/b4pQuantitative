@@ -11,7 +11,7 @@ import { HQ } from "../shared/chapters";
 import { describeFilters, matchChapters, matchEntity, matchSemester, useFinance, useShipments } from "../shared/data";
 import { formatMonth, formatNum, formatPct, formatUsd, formatUsdShort } from "../shared/format";
 import { sortSemesters } from "../shared/semester";
-import { COST_COLOR, Card, ErrorText, Loading, Metric, MetricRow, Notice, REVENUE_COLOR, Subtabs, Table } from "../shared/ui";
+import { COST_COLOR, Card, ErrorText, HeaderStatus, Loading, Metric, MetricRow, Notice, REVENUE_COLOR, Subtabs, Table } from "../shared/ui";
 
 const NET_COLOR = "#0035a2";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -135,22 +135,25 @@ const ledgerColumns = (flow) => [
 
 // --- header pieces ---
 
+/** Data status, shown in the page header under the title. */
 function StatusBar({ fin, onSync, syncing }) {
   const live = Object.values(fin.origins).filter((o) => o.origin === "sheet").length;
   const all = Object.values(fin.origins).length;
   const pulled = fin.data?.pulledAt ? new Date(fin.data.pulledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "—";
   return (
-    <p className="combo-fineprint combo-status-line" aria-live="polite">
-      <span>
-        <i className={`combo-status-dot${live === all && all ? " live" : ""}`} />
-        {live === all && all ? "Live from Google Sheets" : live ? "Partly live, partly sample data" : "Sample data"}
-      </span>
-      <span>Last synced {pulled}</span>
-      <span>{formatNum(fin.rows.length)} records</span>
-      <button type="button" className="combo-link-button" onClick={onSync} disabled={syncing}>
-        {syncing ? "Syncing…" : "Sync now"}
-      </button>
-    </p>
+    <HeaderStatus>
+      <p className="combo-fineprint combo-status-line" aria-live="polite">
+        <span>
+          <i className={`combo-status-dot${live === all && all ? " live" : ""}`} />
+          {live === all && all ? "Live from Google Sheets" : live ? "Partly live, partly sample data" : "Sample data"}
+        </span>
+        <span>Last synced {pulled}</span>
+        <span>{formatNum(fin.rows.length)} records</span>
+        <button type="button" className="combo-link-button" onClick={onSync} disabled={syncing}>
+          {syncing ? "Syncing…" : "Sync now"}
+        </button>
+      </p>
+    </HeaderStatus>
   );
 }
 

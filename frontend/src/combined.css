@@ -1373,3 +1373,12 @@ textarea {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* data status (Finance) sits in the header, under the page title */
+.combo-header-status:empty {
+  display: none;
+}
+
+.combo-header-status .combo-fineprint {
+  margin: 6px 0 0;
+}

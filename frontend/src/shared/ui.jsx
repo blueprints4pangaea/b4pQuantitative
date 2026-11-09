@@ -2,6 +2,9 @@
 // They reuse the operations dashboard's classes (summary-card, panel-header,
 // metric-card, shipment-subtab, shipment-kpi-table) so every tab looks the same.
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 // Categorical colors from the operations dashboard's chart palette.
 export const SERIES = ["#0069f3", "#f0643c", "#12a58a", "#e29b00", "#d9609e", "#5a4fcf"];
 export const REVENUE_COLOR = SERIES[0];
@@ -104,4 +107,11 @@ export function Table({ columns, rows, rowKey, empty = "Nothing to show for thes
       </table>
     </div>
   );
+}
+
+/** Puts its children in the page header, under the title (the slot lives in Shell). */
+export function HeaderStatus({ children }) {
+  const [slot, setSlot] = useState(null);
+  useEffect(() => setSlot(document.getElementById("combo-header-status")), []);
+  return slot ? createPortal(children, slot) : null;
 }
