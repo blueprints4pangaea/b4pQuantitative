@@ -5,7 +5,7 @@
 // Shipping is not a finance category: shipping cost comes from the master
 // shipment sheet and is shown next to finance cost, never added into it twice.
 import { useMemo, useState } from "react";
-import { BarChart, Donut, MoneyFlowChart, ShareBars } from "../shared/charts";
+import { Donut, LineChart, MoneyFlowChart, ShareBars } from "../shared/charts";
 import { HQ } from "../shared/chapters";
 import { describeFilters, matchChapters, matchEntity, matchSemester, useFinance, useShipments } from "../shared/data";
 import { formatMonth, formatNum, formatPct, formatUsd, formatUsdShort } from "../shared/format";
@@ -290,12 +290,10 @@ function Revenue({ rows, filters }) {
     <>
       <MetricRow>
         <Metric label="Total Revenue" value={formatUsd(sum(mine))} />
-        <Metric label="Entries" value={formatNum(mine.length)} />
-        <Metric label="Sources" value={formatNum(bySource.length)} />
         <Metric label="Largest Source" value={bySource[0]?.name ?? "—"} hint={bySource[0] ? formatUsd(bySource[0].value) : undefined} />
       </MetricRow>
       <Card title={`Revenue by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
-        <BarChart data={chart.data} series={[{ name: "Revenue", color: REVENUE_COLOR }]} format={formatUsdShort} />
+        <LineChart height={240} data={chart.data} series={[{ name: "Revenue", color: REVENUE_COLOR }]} format={formatUsdShort} />
       </Card>
       <div className="combo-two-col">
         <Card title="Revenue by Source" subtitle="Who the money comes from">
@@ -335,12 +333,11 @@ function Cost({ rows, filters, shippingCost }) {
     <>
       <MetricRow>
         <Metric label="Total Expenses" value={formatUsd(sum(mine))} hint="Not counting shipping" />
-        <Metric label="Entries" value={formatNum(mine.length)} />
         <Metric label="Largest Category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
         <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
       <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
-        <BarChart data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
+        <LineChart height={240} data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
       </Card>
       <div className="combo-two-col">
         <Card title="Expenses by Category" subtitle="Where the money goes">
