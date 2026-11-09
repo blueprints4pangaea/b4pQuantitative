@@ -111,6 +111,84 @@ SHIPMENTS = [
     },
 ]
 
+# OSU's "Master Inventory Sheet"
+# (https://docs.google.com/spreadsheets/d/1ectimRPpJ2z_vJeM4B5PStflb4L--XIJAbDy4SEkxT0), hard-coded because
+# it won't change again. It's an inventory list: a row becomes a shipment item when it has a "Number
+# Requested" for an organization and "Delivered?" says YES. Each tab's date is the shipment date, one
+# shipment per organization per tab, and value = number requested x the row's unit price. Rows marked
+# NO (500 tourniquets and 10 thermometers for Lower Lights Health, and 4,000 gauze sponges from the
+# unpriced 10/8/26 tab) weren't delivered yet, so they're left out.
+_OSU_NOTE = "From OSU's Master Inventory Sheet; value is number delivered x unit price."
+SHIPMENTS += [
+    {
+        "chapter": "OSU",
+        "name": "Helping Hands Health and Wellness Center (5/1/26)",
+        "date": "2026-05-01",
+        "recipients": ["Helping Hands Health and Wellness Center"],
+        "weightLbs": None,
+        "note": _OSU_NOTE,
+        "items": [
+            ("McKesson Sphygmomanometer", "McKesson", 3, 1103.58),
+            ("McKesson Aneroid Sphygmomanometer", "McKesson", 1, 1034.32),
+            ("Wheelchair Cushion", "", 1, 29.85),
+            ('21G x 3/4" x 7" Vacutainer Safety-Lok Blood Collection Set', "BD", 34, 90.10),
+        ],
+    },
+    {
+        "chapter": "OSU",
+        "name": "Vineyard Free Clinic (5/1/26)",
+        "date": "2026-05-01",
+        "recipients": ["Vineyard Free Clinic"],
+        "weightLbs": None,
+        "note": _OSU_NOTE,
+        "items": [("McKesson Sphygmomanometer", "McKesson", 4, 1471.44)],
+    },
+    {
+        "chapter": "OSU",
+        "name": "Hilltop Free Clinic (5/1/26)",
+        "date": "2026-05-01",
+        "recipients": ["Hilltop Free Clinic"],
+        "weightLbs": None,
+        "note": _OSU_NOTE,
+        "items": [
+            ("3M N95 Small Healthcare Particulate Respirator and Surgical Mask", "3M", 20, 15.00),
+            ("hCG Combo Cassette 20/10 mIU/mL (40 tests per box)", "", 2, 150.00),
+        ],
+    },
+    {
+        "chapter": "OSU",
+        "name": "Hilltop Free Clinic (5/14/26)",
+        "date": "2026-05-14",
+        "recipients": ["Hilltop Free Clinic"],
+        "weightLbs": None,
+        "note": _OSU_NOTE,
+        "items": [
+            ("Insulin Syringes 31G 1/2cc", "", 10, 2.50),
+            ("Insulin Syringes 30G 1/2cc", "", 10, 2.50),
+            ("Easy Touch Insulin Syringes 31G 1cc", "Easy Touch", 4, 0.80),
+        ],
+    },
+    {
+        "chapter": "OSU",
+        "name": "Helping Hands Health and Wellness Center (5/14/26)",
+        "date": "2026-05-14",
+        "recipients": ["Helping Hands Health and Wellness Center"],
+        "weightLbs": None,
+        "note": _OSU_NOTE,
+        "items": [("Non-contact Infrared Thermometer", "Bing Zun", 8, 80.00)],
+    },
+    {
+        "chapter": "OSU",
+        "name": "Vineyard Free Clinic (5/14/26)",
+        "date": "2026-05-14",
+        "recipients": ["Vineyard Free Clinic"],
+        "weightLbs": None,
+        "note": _OSU_NOTE,
+        "items": [("Non-contact Infrared Thermometer", "Bing Zun", 8, 80.00)],
+    },
+]
+OSU_TOTAL = 4060.09
+
 # USC's Historical Impact Summary sheet, hard-coded (see usc_history.py)
 from backend.usc_history import shipments as _usc_shipments  # noqa: E402
 

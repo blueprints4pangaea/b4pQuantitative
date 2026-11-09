@@ -1,4 +1,4 @@
-from backend.chapter_shipments import OTHER, SHEET_TOTALS, categorize, load_shipments
+from backend.chapter_shipments import OSU_TOTAL, OTHER, SHEET_TOTALS, categorize, load_shipments
 from backend.usc_history import SHEET_TOTAL as USC_SHEET_TOTAL
 
 
@@ -12,7 +12,7 @@ def by_name():
 
 def test_item_costs_add_up_to_each_sheet_total():
     for name, shipment in by_name().items():
-        if shipment["chapter"] == "USC":
+        if shipment["chapter"] in ("USC", "OSU"):
             continue
         assert abs(shipment["cost"] - SHEET_TOTALS[name]) < 0.01, name
 
@@ -20,7 +20,7 @@ def test_item_costs_add_up_to_each_sheet_total():
 def test_school_order_and_default():
     data = load_shipments()
     assert data["defaultSchool"] == "UC Berkeley"
-    assert [s["name"] for s in data["schools"]] == ["UC Berkeley", "UNO", "USC"]
+    assert [s["name"] for s in data["schools"]] == ["UC Berkeley", "OSU", "UNO", "USC"]
 
 
 def test_summary_per_school():
@@ -77,3 +77,10 @@ def test_usc_adds_up_to_its_sheet_total():
     assert abs(usc["summary"]["cost"] - USC_SHEET_TOTAL) < 0.01
     assert usc["summary"]["shipments"] == 45
     assert len({sh["name"] for sh in usc["shipments"]}) == 45
+
+
+def test_osu_delivered_rows():
+    osu = schools()["OSU"]
+    assert osu["summary"]["shipments"] == 6
+    assert osu["summary"]["recipientsServed"] == 3
+    assert abs(osu["summary"]["cost"] - OSU_TOTAL) < 0.01
