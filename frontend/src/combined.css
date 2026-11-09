@@ -457,3 +457,202 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* --- donut (finance cost by category) --- */
+.combo-donut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.combo-donut-value {
+  fill: var(--bp-heading);
+  font-family: var(--bp-display);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-donut-legend {
+  flex: 1 1 200px;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+}
+
+.combo-donut-legend li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 8px;
+}
+
+.combo-donut-legend li.active {
+  background: rgba(0, 105, 243, 0.07);
+}
+
+.combo-donut-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.combo-donut-legend small {
+  color: var(--bp-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- finance: status bar, toolbars, pager, sortable headers --- */
+.combo-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 10px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-inner);
+  background: var(--glass-bg);
+  font-size: 0.88rem;
+  color: var(--bp-ink-muted);
+}
+
+.combo-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: #e29b00;
+}
+
+.combo-status-dot.live {
+  background: #12a58a;
+}
+
+.combo-status .secondary-button {
+  margin-left: auto;
+}
+
+.combo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.combo-toolbar .search-input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 9px 12px;
+}
+
+.combo-toolbar .shipment-filter-select {
+  flex: 0 0 auto;
+  min-width: 170px;
+  padding: 9px 12px;
+}
+
+.combo-toolbar-count {
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+}
+
+.combo-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+}
+
+.combo-pager button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.combo-sort {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.combo-variance {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 18px;
+  padding: 10px 16px;
+  border-radius: var(--glass-radius-inner);
+  background: rgba(0, 105, 243, 0.07);
+  font-size: 0.88rem;
+}
+
+.combo-good {
+  color: #13795b;
+  font-weight: 600;
+}
+
+.combo-bad {
+  color: var(--bp-red);
+  font-weight: 600;
+}
+
+.combo-tier {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--bp-surface-sunken);
+  color: var(--bp-blue);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.combo-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.combo-metric-inline {
+  text-align: right;
+}
+
+.combo-metric-inline p:last-child {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+}
+
+.combo-toolbar .combo-subtabs {
+  margin: 0;
+}
+
+.combo-nowrap {
+  white-space: nowrap;
+}
+
+.combo-toolbar-scope .combo-subtabs {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.combo-toolbar-scope .shipment-subtab {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+}
+
+.combo-toolbar-scope .search-input {
+  flex: 1 1 240px;
+}

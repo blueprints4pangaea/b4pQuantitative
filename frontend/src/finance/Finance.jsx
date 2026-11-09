@@ -1,30 +1,35 @@
-// Finance, ported from financeDashboard. Revenue and cost get their own tabs.
+// Finance, ported from the Blueprints financeDashboard with every one of its
+// tabs: Overview & KPIs, Revenue, Cost, Chapters and Transactions.
+// Chapter and semester come from the shared filter bar; Year and Month are the
+// finance dashboard's own extra filters.
 // Shipping is not a finance category: shipping cost comes from the master
 // shipment sheet and is shown next to finance cost, never added into it twice.
 import { useMemo, useState } from "react";
-import { BarChart, ShareBars } from "../shared/charts";
+import { BarChart, Donut, MoneyFlowChart, ShareBars } from "../shared/charts";
 import { HQ, chapterOptions } from "../shared/chapters";
 import { describeFilters, matchChapters, matchEntity, matchSemester, useFinance, useShipments } from "../shared/data";
-import { formatMonth, formatPct, formatUsd, formatUsdShort } from "../shared/format";
+import { formatMonth, formatNum, formatPct, formatUsd, formatUsdShort } from "../shared/format";
 import { sortSemesters } from "../shared/semester";
 import { COST_COLOR, Card, ErrorText, Loading, Metric, MetricRow, Notice, REVENUE_COLOR, Subtabs, Table } from "../shared/ui";
 
+const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+const NET_COLOR = "#0035a2";
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const LEDGER_PAGE = 10;
+
 const sum = (rows) => rows.reduce((s, r) => s + r.amount, 0);
+const showEntity = (e) => (e === HQ ? "HQ (UMich)" : e);
 
 function groupSum(rows, key) {
   const m = new Map();
-  for (const r of rows) m.set(r[key], (m.get(r[key]) ?? 0) + r.amount);
-  return [...m.entries()].map(([name, value]) => ({ name, value }));
-}
-
-/** By semester when every semester is shown, by month inside one semester. */
-function periods(rows, filters) {
-  if (filters.semester === "all") {
-    const labels = sortSemesters(rows.map((r) => r.semester)).reverse();
-    return { labels, keyOf: (r) => r.semester, show: (l) => l };
+  for (const r of rows) {
+    const k = r[key] || "Unlabeled";
+    const cur = m.get(k) ?? { name: k, value: 0, count: 0 };
+    cur.value += r.amount;
+    cur.count += 1;
+    m.set(k, cur);
   }
-  const labels = [...new Set(rows.map((r) => r.month))].sort();
-  return { labels, keyOf: (r) => r.month, show: formatMonth };
+  return [...m.values()].sort((a, b) => b.value - a.value);
 }
 
 export function financeTotals(rows) {
@@ -37,70 +42,528 @@ export function filterFinance(rows, filters) {
   return rows.filter((r) => matchEntity(r.entity, filters) && matchSemester(r, filters));
 }
 
-function FlowTab({ flow, rows, allRows, filters }) {
-  const mine = rows.filter((r) => r.flow === flow);
-  const color = flow === "revenue" ? REVENUE_COLOR : COST_COLOR;
-  const noun = flow === "revenue" ? "Revenue" : "Cost";
-  const p = periods(mine, filters);
-  const chart = p.labels.map((l) => ({ label: p.show(l), values: [sum(mine.filter((r) => p.keyOf(r) === l))] }));
+const matchPeriod = (r, period) =>
+  (period.year === "all" || r.date.slice(0, 4) === period.year) && (period.month === "all" || r.date.slice(5, 7) === period.month);
 
-  // chapter comparison ignores the chapter filter so chapters can be compared side by side
-  const bySemester = allRows.filter((r) => r.flow === flow && matchSemester(r, filters));
-  const entities = groupSum(bySemester, "entity").sort((a, b) => b.value - a.value);
-  const total = entities.reduce((s, e) => s + e.value, 0) || 1;
+function periodLabel(period) {
+  const m = period.month === "all" ? "" : MONTHS[Number(period.month) - 1];
+  const y = period.year === "all" ? "" : period.year;
+  return [m, y].filter(Boolean).join(" ");
+}
 
+/** Revenue, cost and net per month, oldest first. */
+function monthly(rows) {
+  const m = new Map();
+  for (const r of rows) {
+    const cur = m.get(r.month) ?? { key: r.month, revenue: 0, cost: 0 };
+    cur[r.flow] += r.amount;
+    m.set(r.month, cur);
+  }
+  return [...m.values()]
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((d) => ({ ...d, label: formatMonth(d.key), net: d.revenue - d.cost }));
+}
+
+// --- small building blocks ---
+
+function SearchBox({ value, onChange, placeholder }) {
+  return <input type="search" className="search-input" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />;
+}
+
+function Pager({ page, pages, total, onPage }) {
+  if (pages <= 1) return <p className="combo-pager">{formatNum(total)} entries</p>;
+  return (
+    <div className="combo-pager">
+      <span>
+        Page {page} of {pages} · {formatNum(total)} entries
+      </span>
+      <button type="button" className="secondary-button" disabled={page <= 1} onClick={() => onPage(page - 1)}>
+        Previous
+      </button>
+      <button type="button" className="secondary-button" disabled={page >= pages} onClick={() => onPage(page + 1)}>
+        Next
+      </button>
+    </div>
+  );
+}
+
+const searchText = (r) => [r.id, r.date, r.entity, r.category, r.source, r.notes, r.sheet, String(r.amount)].join(" ").toLowerCase();
+
+/** Search, a category filter and pages of `pageSize`, like the finance dashboard's ledgers. */
+function Ledger({ rows, columns, placeholder, pageSize = LEDGER_PAGE, children }) {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
+  const [page, setPage] = useState(1);
+  const categories = useMemo(() => [...new Set(rows.map((r) => r.category))].sort(), [rows]);
+  const q = query.trim().toLowerCase();
+  const shown = rows
+    .filter((r) => (category === "all" || r.category === category) && (!q || searchText(r).includes(q)))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const pages = Math.max(1, Math.ceil(shown.length / pageSize));
+  const p = Math.min(page, pages);
+  const reset = (fn) => (v) => {
+    fn(v);
+    setPage(1);
+  };
   return (
     <>
-      <MetricRow>
-        <Metric label={`Total ${noun.toLowerCase()}`} value={formatUsd(sum(mine))} />
-        <Metric label="Entries" value={mine.length} />
-        <Metric label={`Average per ${filters.semester === "all" ? "semester" : "month"}`} value={formatUsd(p.labels.length ? sum(mine) / p.labels.length : 0)} />
-        <Metric label={flow === "revenue" ? "Biggest source" : "Biggest category"} value={groupSum(mine, flow === "revenue" ? "source" : "category").sort((a, b) => b.value - a.value)[0]?.name ?? "—"} />
-      </MetricRow>
-
-      <Card title={`${noun} by ${filters.semester === "all" ? "semester" : "month"}`} subtitle={describeFilters(filters)}>
-        <BarChart data={chart} series={[{ name: noun, color }]} format={formatUsdShort} />
-      </Card>
-
-      <div className="combo-two-col">
-        <Card title={flow === "revenue" ? "Revenue by source" : "Cost by category"} subtitle={flow === "revenue" ? "Who the money comes from" : "Where the money goes"}>
-          <ShareBars items={groupSum(mine, flow === "revenue" ? "source" : "category")} format={formatUsd} color={color} />
-        </Card>
-        <Card title={`${noun} by chapter`} subtitle="Every chapter and HQ for the chosen semester, so they can be compared">
-          <Table
-            columns={[
-              { key: "name", label: "Chapter" },
-              { key: "value", label: noun, align: "right", render: (r) => formatUsd(r.value) },
-              { key: "share", label: "Share", align: "right", render: (r) => formatPct(r.value / total) },
-            ]}
-            rows={entities}
-            rowKey={(r) => r.name}
-            highlight={(r) => r.name === filters.chapter}
-          />
-        </Card>
+      <div className="combo-toolbar">
+        {children}
+        <SearchBox value={query} onChange={reset(setQuery)} placeholder={placeholder} />
+        <select className="shipment-filter-select" value={category} onChange={(e) => reset(setCategory)(e.target.value)} aria-label="Category">
+          <option value="all">All categories</option>
+          {categories.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+        <span className="combo-toolbar-count">{formatUsd(sum(shown))} total</span>
       </div>
+      <Table columns={columns} rows={shown.slice((p - 1) * pageSize, p * pageSize)} rowKey={(r) => r.id} />
+      <Pager page={p} pages={pages} total={shown.length} onPage={setPage} />
+    </>
+  );
+}
 
-      <Card title={`${noun} entries`} subtitle="Newest first">
-        <Table
-          columns={[
-            { key: "date", label: "Date" },
-            { key: "entity", label: "Chapter" },
-            { key: "category", label: "Category" },
-            { key: "source", label: flow === "revenue" ? "From" : "Paid to" },
-            { key: "amount", label: "Amount", align: "right", render: (r) => formatUsd(r.amount) },
-            { key: "notes", label: "Notes" },
-          ]}
-          rows={[...mine].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 50)}
+const ledgerColumns = (flow) => [
+  { key: "date", label: "Date", render: (r) => <span className="combo-nowrap">{r.date}</span> },
+  { key: "entity", label: "Chapter", render: (r) => <span className="combo-nowrap">{showEntity(r.entity)}</span> },
+  { key: "category", label: "Category" },
+  { key: "source", label: flow === "revenue" ? "From" : "Paid to" },
+  { key: "amount", label: "Amount", align: "right", render: (r) => formatUsd(r.amount) },
+  { key: "notes", label: "Notes", render: (r) => <span title={r.notes}>{r.notes}</span> },
+];
+
+// --- header pieces ---
+
+function StatusBar({ fin, onSync, syncing }) {
+  const live = Object.values(fin.origins).filter((o) => o.origin === "sheet").length;
+  const all = Object.values(fin.origins).length;
+  const pulled = fin.data?.pulledAt ? new Date(fin.data.pulledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "—";
+  return (
+    <div className="combo-status" aria-live="polite">
+      <span>
+        <i className={`combo-status-dot${live === all && all ? " live" : ""}`} />
+        {live === all && all ? "Live from Google Sheets" : live ? "Partly live, partly sample data" : "Sample data"}
+      </span>
+      <span>Last synced {pulled}</span>
+      <span>{formatNum(fin.rows.length)} records</span>
+      <button type="button" className="secondary-button" onClick={onSync} disabled={syncing}>
+        {syncing ? "Syncing…" : "Sync now"}
+      </button>
+    </div>
+  );
+}
+
+function PeriodFilters({ period, setPeriod, years }) {
+  const set = (key) => (e) => setPeriod({ ...period, [key]: e.target.value });
+  return (
+    <div className="combo-toolbar">
+      <label className="combo-filter">
+        <span className="title-block-label">Year</span>
+        <select className="shipment-filter-select" value={period.year} onChange={set("year")}>
+          <option value="all">All years</option>
+          {years.map((y) => (
+            <option key={y}>{y}</option>
+          ))}
+        </select>
+      </label>
+      <label className="combo-filter">
+        <span className="title-block-label">Month</span>
+        <select className="shipment-filter-select" value={period.month} onChange={set("month")}>
+          <option value="all">All months</option>
+          {MONTHS.map((m, i) => (
+            <option key={m} value={String(i + 1).padStart(2, "0")}>
+              {m}
+            </option>
+          ))}
+        </select>
+      </label>
+      {(period.year !== "all" || period.month !== "all") && (
+        <button type="button" className="secondary-button" onClick={() => setPeriod({ year: "all", month: "all" })}>
+          Reset year and month
+        </button>
+      )}
+    </div>
+  );
+}
+
+// --- tabs ---
+
+/** Month-over-month change for the picked month, against the month before it. */
+function Variance({ scoped, period }) {
+  if (period.month === "all") return null;
+  const months = monthly(scoped);
+  const i = months.findIndex((m) => m.key.slice(5, 7) === period.month && (period.year === "all" || m.key.slice(0, 4) === period.year));
+  if (i < 1) return null;
+  const cur = months[i];
+  const prev = months[i - 1];
+  const pct = (a, b) => (b > 0 ? ` (${(((a - b) / b) * 100).toFixed(1)}%)` : "");
+  const signed = (n) => (n >= 0 ? `+${formatUsd(n)}` : formatUsd(n));
+  return (
+    <div className="combo-variance">
+      <strong>
+        Month over month: {cur.label} vs {prev.label}
+      </strong>
+      <span>
+        Revenue{" "}
+        <span className={cur.revenue >= prev.revenue ? "combo-good" : "combo-bad"}>
+          {signed(cur.revenue - prev.revenue)}
+          {pct(cur.revenue, prev.revenue)}
+        </span>
+      </span>
+      <span>
+        Cost{" "}
+        <span className={cur.cost <= prev.cost ? "combo-good" : "combo-bad"}>
+          {signed(cur.cost - prev.cost)}
+          {pct(cur.cost, prev.cost)}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function Overview({ rows, scoped, period, filters, shippingCost }) {
+  const t = financeTotals(rows);
+  const activeChapters = new Set(rows.map((r) => r.entity).filter((e) => e !== HQ)).size;
+  const flow = monthly(rows);
+  return (
+    <>
+      <Variance scoped={scoped} period={period} />
+      <MetricRow>
+        <Metric label="Total revenue" value={formatUsd(t.revenue)} hint={`${formatNum(rows.filter((r) => r.flow === "revenue").length)} entries`} />
+        <Metric label="Total expenses" value={formatUsd(t.cost)} hint="Not counting shipping" />
+        <Metric
+          label="Net margin"
+          value={t.net >= 0 ? `+${formatUsd(t.net)}` : formatUsd(t.net)}
+          tone={t.net < 0 ? "bad" : undefined}
+          hint={t.revenue ? `${formatPct(t.net / t.revenue)} operating margin` : undefined}
         />
+        <Metric label="Transactions" value={formatNum(rows.length)} />
+        <Metric label="Active chapters" value={formatNum(activeChapters)} hint="With entries in this period" />
+        <Metric label="Shipping cost" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
+      </MetricRow>
+      <Card
+        title="Money in, money out"
+        subtitle={`Revenue and cost bars with the net line, by month · ${describeFilters(filters)}${periodLabel(period) ? ` · ${periodLabel(period)}` : ""}`}
+        actions={
+          <div className="combo-metric-inline">
+            <p className="title-block-label">Total net</p>
+            <p className={t.net < 0 ? "combo-bad" : "combo-good"}>{formatUsd(t.net)}</p>
+          </div>
+        }
+      >
+        <MoneyFlowChart data={flow} colors={{ revenue: REVENUE_COLOR, cost: COST_COLOR, net: NET_COLOR }} format={formatUsdShort} />
       </Card>
     </>
   );
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+/** Semester bars when every semester is shown, month bars inside one semester. */
+function periodChart(rows, filters) {
+  if (filters.semester === "all") {
+    const labels = sortSemesters(rows.map((r) => r.semester)).reverse();
+    return { by: "semester", data: labels.map((l) => ({ label: l, values: [sum(rows.filter((r) => r.semester === l))] })) };
+  }
+  return { by: "month", data: monthly(rows).map((m) => ({ label: m.label, values: [m.revenue + m.cost] })) };
+}
+
+const BIFURCATION = [
+  { id: "all", label: "All inflows" },
+  { id: "grants", label: "Grants & Sponsorships" },
+  { id: "donations", label: "Donations & Fundraisers" },
+  { id: "other", label: "Other streams" },
+];
+
+function bifurcate(r, tab) {
+  const c = r.category.toLowerCase();
+  const grant = c.includes("grant") || c.includes("sponsor");
+  const donation = c.includes("donat") || c.includes("fundrais") || c.includes("event");
+  if (tab === "grants") return grant;
+  if (tab === "donations") return donation;
+  if (tab === "other") return !grant && !donation;
+  return true;
+}
+
+function Revenue({ rows, filters }) {
+  const [split, setSplit] = useState("all");
+  const mine = rows.filter((r) => r.flow === "revenue");
+  const bySource = groupSum(mine, "source");
+  const total = sum(mine) || 1;
+  const chart = periodChart(mine, filters);
+  return (
+    <>
+      <MetricRow>
+        <Metric label="Total revenue" value={formatUsd(sum(mine))} />
+        <Metric label="Entries" value={formatNum(mine.length)} />
+        <Metric label="Sources" value={formatNum(bySource.length)} />
+        <Metric label="Biggest source" value={bySource[0]?.name ?? "—"} hint={bySource[0] ? formatUsd(bySource[0].value) : undefined} />
+      </MetricRow>
+      <Card title={`Revenue by ${chart.by}`} subtitle={describeFilters(filters)}>
+        <BarChart data={chart.data} series={[{ name: "Revenue", color: REVENUE_COLOR }]} format={formatUsdShort} />
+      </Card>
+      <div className="combo-two-col">
+        <Card title="Revenue by source" subtitle="Who the money comes from">
+          <ShareBars items={bySource} format={formatUsd} color={REVENUE_COLOR} />
+        </Card>
+        <Card title="Revenue by program category" subtitle="Grants, donations, sponsorships and fundraising">
+          <ShareBars items={groupSum(mine, "category")} format={formatUsd} color={REVENUE_COLOR} />
+        </Card>
+      </div>
+      <Card title="Revenue sources" subtitle="Every stream, biggest first">
+        <Table
+          columns={[
+            { key: "name", label: "Source" },
+            { key: "count", label: "Transactions", align: "right" },
+            { key: "value", label: "Amount", align: "right", render: (r) => formatUsd(r.value) },
+            { key: "share", label: "Share of total", align: "right", render: (r) => formatPct(r.value / total) },
+          ]}
+          rows={bySource}
+          rowKey={(r) => r.name}
+        />
+      </Card>
+      <Card title="Revenue ledger" subtitle="Every inbound grant, sponsorship, donation and fundraising receipt">
+        <Subtabs tabs={BIFURCATION} value={split} onChange={setSplit} />
+        <Ledger key={split} rows={mine.filter((r) => bifurcate(r, split))} columns={ledgerColumns("revenue")} placeholder="Search the revenue ledger" />
+      </Card>
+    </>
+  );
+}
+
+function Cost({ rows, filters, shippingCost }) {
+  const mine = rows.filter((r) => r.flow === "cost");
+  const byCategory = groupSum(mine, "category");
+  const payees = groupSum(mine, "source");
+  const total = sum(mine) || 1;
+  const chart = periodChart(mine, filters);
+  return (
+    <>
+      <MetricRow>
+        <Metric label="Total expenses" value={formatUsd(sum(mine))} hint="Not counting shipping" />
+        <Metric label="Entries" value={formatNum(mine.length)} />
+        <Metric label="Biggest category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
+        <Metric label="Shipping cost" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
+      </MetricRow>
+      <Card title={`Cost by ${chart.by}`} subtitle={describeFilters(filters)}>
+        <BarChart data={chart.data} series={[{ name: "Cost", color: COST_COLOR }]} format={formatUsdShort} />
+      </Card>
+      <div className="combo-two-col">
+        <Card title="Cost by category" subtitle="Where the money goes">
+          <Donut items={byCategory} format={formatUsd} centerLabel="Total cost" />
+        </Card>
+        <Card title="Top payees" subtitle="Vendors ranked by total spent">
+          <Table
+            columns={[
+              { key: "rank", label: "Rank", render: (r) => payees.indexOf(r) + 1 },
+              { key: "name", label: "Payee" },
+              { key: "count", label: "Entries", align: "right" },
+              { key: "value", label: "Total spent", align: "right", render: (r) => formatUsd(r.value) },
+              { key: "share", label: "Share", align: "right", render: (r) => formatPct(r.value / total) },
+            ]}
+            rows={payees.slice(0, 12)}
+            rowKey={(r) => r.name}
+          />
+        </Card>
+      </div>
+      <Card title="Expense ledger" subtitle="Every cost entry, newest first">
+        <Ledger rows={mine} columns={ledgerColumns("cost")} placeholder="Search the expense ledger" />
+      </Card>
+    </>
+  );
+}
+
+/** Per chapter totals, with the finance dashboard's tiers (by months with entries). */
+function chapterRows(rows) {
+  const totals = financeTotals(rows);
+  const m = new Map();
+  for (const r of rows) {
+    const cur = m.get(r.entity) ?? { chapter: r.entity, revenue: 0, cost: 0, count: 0, months: new Set() };
+    cur[r.flow] += r.amount;
+    cur.count += 1;
+    cur.months.add(r.month);
+    m.set(r.entity, cur);
+  }
+  return [...m.values()].map((c) => {
+    const net = c.revenue - c.cost;
+    const months = c.months.size;
+    return {
+      chapter: c.chapter,
+      tier: c.chapter === HQ ? "Central operations" : months >= 5 ? "Established" : months >= 2 ? "Growing" : "Expanding / emerging",
+      revenue: c.revenue,
+      cost: c.cost,
+      net,
+      margin: c.revenue > 0 ? net / c.revenue : 0,
+      count: c.count,
+      months,
+      revShare: totals.revenue ? c.revenue / totals.revenue : 0,
+      costShare: totals.cost ? c.cost / totals.cost : 0,
+    };
+  });
+}
+
+function exportCsv(rows) {
+  const head = ["Chapter", "Tier", "Revenue", "Cost", "Net", "Margin %", "Transactions", "Active months", "Revenue share %", "Cost share %"];
+  const q = (s) => `"${String(s).replace(/"/g, '""')}"`;
+  const lines = rows.map((c) =>
+    [
+      q(showEntity(c.chapter)),
+      q(c.tier),
+      c.revenue.toFixed(2),
+      c.cost.toFixed(2),
+      c.net.toFixed(2),
+      (c.margin * 100).toFixed(1),
+      c.count,
+      c.months,
+      (c.revShare * 100).toFixed(1),
+      (c.costShare * 100).toFixed(1),
+    ].join(",")
+  );
+  const blob = new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `b4p-chapter-finance-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function Chapters({ rows, filters, setFilters }) {
+  const [scope, setScope] = useState("all");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState({ key: "revenue", asc: false });
+  const all = chapterRows(rows);
+  const q = query.trim().toLowerCase();
+  const shown = all
+    .filter((c) => (scope === "all" ? true : scope === "hq" ? c.chapter === HQ : c.chapter !== HQ))
+    .filter((c) => !q || `${showEntity(c.chapter)} ${c.tier}`.toLowerCase().includes(q))
+    .sort((a, b) => {
+      const A = a[sort.key];
+      const B = b[sort.key];
+      const d = typeof A === "string" ? A.localeCompare(B) : A - B;
+      return sort.asc ? d : -d;
+    });
+  const head = (key, label) => (
+    <button type="button" className="combo-sort" onClick={() => setSort({ key, asc: sort.key === key ? !sort.asc : false })}>
+      {label}
+      {sort.key === key ? (sort.asc ? " ▲" : " ▼") : ""}
+    </button>
+  );
+  const money = (key) => (r) => formatUsd(r[key]);
+  return (
+    <Card
+      title="Chapter finances"
+      subtitle="Every chapter and HQ side by side for the chosen period. Click a chapter to filter the dashboard to it."
+      actions={
+        <button type="button" className="secondary-button" onClick={() => exportCsv(shown)}>
+          Export CSV report
+        </button>
+      }
+    >
+      <div className="combo-toolbar combo-toolbar-scope">
+        <Subtabs
+          tabs={[
+            { id: "all", label: "Everyone" },
+            { id: "hq", label: "HQ only" },
+            { id: "chapters", label: "Chapters only" },
+          ]}
+          value={scope}
+          onChange={setScope}
+        />
+        <SearchBox value={query} onChange={setQuery} placeholder="Search chapters or tiers" />
+      </div>
+      <Table
+        columns={[
+          {
+            key: "chapter",
+            label: head("chapter", "Chapter"),
+            render: (r) => (
+              <button type="button" className="combo-sort" onClick={() => setFilters({ ...filters, chapter: r.chapter })}>
+                <span className="combo-nowrap">{showEntity(r.chapter)}</span>
+              </button>
+            ),
+          },
+          { key: "tier", label: head("tier", "Tier"), render: (r) => <span className="combo-tier">{r.tier}</span> },
+          { key: "revenue", label: head("revenue", "Revenue"), align: "right", render: money("revenue") },
+          { key: "cost", label: head("cost", "Cost"), align: "right", render: money("cost") },
+          {
+            key: "net",
+            label: head("net", "Net"),
+            align: "right",
+            render: (r) => <span className={r.net < 0 ? "combo-bad" : "combo-good"}>{formatUsd(r.net)}</span>,
+          },
+          { key: "margin", label: head("margin", "Margin"), align: "right", render: (r) => formatPct(r.margin) },
+          { key: "count", label: head("count", "Entries"), align: "right" },
+          { key: "months", label: head("months", "Months"), align: "right" },
+          { key: "revShare", label: head("revShare", "Share rev / cost"), align: "right", render: (r) => `${formatPct(r.revShare)} / ${formatPct(r.costShare)}` },
+        ]}
+        rows={shown}
+        rowKey={(r) => r.chapter}
+        highlight={(r) => r.chapter === filters.chapter}
+      />
+    </Card>
+  );
+}
+
+function AllTransactions({ rows }) {
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("all");
+  const [chapter, setChapter] = useState("all");
+  const [pageSize, setPageSize] = useState(15);
+  const [page, setPage] = useState(1);
+  const chapters = useMemo(() => [...new Set(rows.map((r) => r.entity))].sort((a, b) => (a === HQ ? -1 : b === HQ ? 1 : a.localeCompare(b))), [rows]);
+  const q = query.trim().toLowerCase();
+  const shown = rows
+    .filter((r) => (type === "all" || r.flow === type) && (chapter === "all" || r.entity === chapter) && (!q || searchText(r).includes(q)))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const pages = Math.max(1, Math.ceil(shown.length / pageSize));
+  const p = Math.min(page, pages);
+  const on = (fn) => (e) => {
+    fn(e.target.value);
+    setPage(1);
+  };
+  return (
+    <>
+      <div className="combo-toolbar">
+        <input type="search" className="search-input" placeholder="Search all records" value={query} onChange={on(setQuery)} />
+        <select className="shipment-filter-select" value={type} onChange={on(setType)} aria-label="Type">
+          <option value="all">Revenue and cost</option>
+          <option value="revenue">Revenue</option>
+          <option value="cost">Cost</option>
+        </select>
+        <select className="shipment-filter-select" value={chapter} onChange={on(setChapter)} aria-label="Chapter">
+          <option value="all">Every chapter</option>
+          {chapters.map((c) => (
+            <option key={c} value={c}>
+              {showEntity(c)}
+            </option>
+          ))}
+        </select>
+        <select className="shipment-filter-select" value={pageSize} onChange={on((v) => setPageSize(Number(v)))} aria-label="Rows per page">
+          {[15, 30, 50, 100].map((n) => (
+            <option key={n} value={n}>
+              {n} per page
+            </option>
+          ))}
+        </select>
+      </div>
+      <Table
+        columns={[
+          { key: "date", label: "Date", render: (r) => <span className="combo-nowrap">{r.date}</span> },
+          { key: "flow", label: "Type", render: (r) => <span className={r.flow === "revenue" ? "combo-good" : "combo-bad"}>{r.flow === "revenue" ? "Revenue" : "Cost"}</span> },
+          { key: "entity", label: "Chapter", render: (r) => showEntity(r.entity) },
+          { key: "category", label: "Category" },
+          { key: "source", label: "From / paid to" },
+          { key: "amount", label: "Amount", align: "right", render: (r) => formatUsd(r.amount) },
+          { key: "notes", label: "Notes", render: (r) => <span title={r.notes}>{r.notes}</span> },
+        ]}
+        rows={shown.slice((p - 1) * pageSize, p * pageSize)}
+        rowKey={(r) => r.id}
+      />
+      <Pager page={p} pages={pages} total={shown.length} onPage={setPage} />
+    </>
+  );
+}
 
 /** Add one entry to the Revenue or Expenses sheet (ported from the finance dashboard's form). */
-function AddEntry({ chapters }) {
+function AddEntry({ chapters, onSaved }) {
   const blank = { type: "Revenue", date: new Date().toISOString().slice(0, 10), amount: "", category: "", source: "", chapter: HQ, notes: "" };
   const [form, setForm] = useState(blank);
   const [status, setStatus] = useState("");
@@ -116,13 +579,15 @@ function AddEntry({ chapters }) {
         body: JSON.stringify({ ...form, amount: Number(form.amount) }),
       });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.detail ?? `Couldn't save (${res.status}).`);
-      setStatus(
-        body.written_to_gspread
-          ? `Saved to the ${body.sheet_target}. Refresh the page to see it in the charts.`
-          : "Not saved to Google Sheets: the service account isn't set up for the finance sheets yet."
-      );
-      if (body.written_to_gspread) setForm(blank);
+      if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail : `Couldn't save (${res.status}).`);
+      if (body.written_to_gspread) {
+        setStatus(`Saved to the ${body.sheet_target}. Syncing…`);
+        setForm(blank);
+        await onSaved();
+        setStatus(`Saved to the ${body.sheet_target}.`);
+      } else {
+        setStatus("Not saved to Google Sheets: the service account isn't set up for the finance sheets yet.");
+      }
     } catch (err) {
       setStatus(err.message);
     }
@@ -148,7 +613,7 @@ function AddEntry({ chapters }) {
       <label>
         <span className="title-block-label">Chapter</span>
         <select value={form.chapter} onChange={set("chapter")}>
-          <option value={HQ}>HQ</option>
+          <option value={HQ}>HQ (UMich)</option>
           {chapters.map((c) => (
             <option key={c}>{c}</option>
           ))}
@@ -167,58 +632,83 @@ function AddEntry({ chapters }) {
         <input value={form.notes} onChange={set("notes")} />
       </label>
       <div className="combo-form-actions">
-        <button type="submit" className="secondary-button">Add entry</button>
-        <span className="combo-form-status" aria-live="polite">{status || "Shipping costs go in the master shipment sheet, not here."}</span>
+        <button type="submit" className="secondary-button">
+          Add entry
+        </button>
+        <span className="combo-form-status" aria-live="polite">
+          {status || "Shipping costs go in the master shipment sheet, not here."}
+        </span>
       </div>
     </form>
   );
 }
 
-export default function Finance({ filters }) {
-  const [tab, setTab] = useState("revenue");
+const TABS = [
+  { id: "overview", label: "Overview & KPIs" },
+  { id: "revenue", label: "Revenue" },
+  { id: "cost", label: "Cost" },
+  { id: "chapters", label: "Chapters" },
+  { id: "transactions", label: "Transactions" },
+];
+
+export default function Finance({ filters, setFilters }) {
+  const [tab, setTab] = useState("overview");
+  const [period, setPeriod] = useState({ year: "all", month: "all" });
+  const [syncing, setSyncing] = useState(false);
   const fin = useFinance();
   const ships = useShipments();
-  const rows = useMemo(() => filterFinance(fin.rows, filters), [fin.rows, filters]);
 
-  if (fin.loading) return <Loading what="finance sheets" />;
+  // scoped: shared filters only (for month-over-month); rows: plus year and month
+  const scoped = useMemo(() => filterFinance(fin.rows, filters), [fin.rows, filters]);
+  const rows = useMemo(() => scoped.filter((r) => matchPeriod(r, period)), [scoped, period]);
+  // the chapter table compares everyone, so it skips the chapter filter
+  const everyone = useMemo(
+    () => fin.rows.filter((r) => matchSemester(r, filters) && matchPeriod(r, period)),
+    [fin.rows, filters, period]
+  );
+  const years = useMemo(() => [...new Set(fin.rows.map((r) => r.date.slice(0, 4)))].sort().reverse(), [fin.rows]);
+
+  if (fin.loading && !fin.data) return <Loading what="finance sheets" />;
   if (fin.error) return <ErrorText>{fin.error}</ErrorText>;
 
-  const t = financeTotals(rows);
+  const sync = async () => {
+    setSyncing(true);
+    try {
+      await fin.reload("/finance?nocache=true");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const shippingCost = ships.rows
-    .filter((s) => matchChapters(s.chapters, filters) && matchSemester(s, filters))
+    .filter((s) => matchChapters(s.chapters, filters) && matchSemester(s, filters) && matchPeriod({ date: `${s.year}-${String(s.month).padStart(2, "0")}` }, period))
     .reduce((s, x) => s + (x.shipping_cost ?? 0), 0);
   const samples = Object.values(fin.origins).filter((o) => o.origin === "sample").map((o) => o.label);
 
   return (
     <div className="combo-stack">
+      <StatusBar fin={fin} onSync={sync} syncing={syncing} />
       {samples.length > 0 && (
         <Notice>
           Showing <strong>made-up sample data</strong> for {samples.join(", ")}. Set the sheet links in Vercel to use the real sheets.
         </Notice>
       )}
-      <MetricRow>
-        <Metric label="Revenue" value={formatUsd(t.revenue)} />
-        <Metric label="Cost" value={formatUsd(t.cost)} hint="Not counting shipping" />
-        <Metric label="Net" value={formatUsd(t.net)} tone={t.net < 0 ? "bad" : undefined} hint={t.revenue ? `${formatPct(t.net / t.revenue)} margin` : undefined} />
-        <Metric label="Shipping cost" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
-      </MetricRow>
-      <Subtabs
-        tabs={[
-          { id: "revenue", label: "Revenue" },
-          { id: "cost", label: "Cost" },
-          { id: "add", label: "Add an entry" },
-        ]}
-        value={tab}
-        onChange={setTab}
-      />
-      {tab === "add" ? (
-        <Card title="Add an entry" subtitle="Goes straight into the Revenue or Expenses Google Sheet">
-          <AddEntry chapters={chapterOptions(fin.rows.map((r) => r.entity))} />
-        </Card>
-      ) : (
-        <FlowTab flow={tab} rows={rows} allRows={fin.rows} filters={filters} />
+      <PeriodFilters period={period} setPeriod={setPeriod} years={years} />
+      <Subtabs tabs={TABS} value={tab} onChange={setTab} />
+      {tab === "overview" && <Overview rows={rows} scoped={scoped} period={period} filters={filters} shippingCost={shippingCost} />}
+      {tab === "revenue" && <Revenue rows={rows} filters={filters} />}
+      {tab === "cost" && <Cost rows={rows} filters={filters} shippingCost={shippingCost} />}
+      {tab === "chapters" && <Chapters rows={everyone} filters={filters} setFilters={setFilters} />}
+      {tab === "transactions" && (
+        <>
+          <Card title="Add an entry" subtitle="Goes straight into the Revenue or Expenses Google Sheet">
+            <AddEntry chapters={chapterOptions(fin.rows.map((r) => r.entity))} onSaved={sync} />
+          </Card>
+          <Card title="All transactions" subtitle={`${describeFilters(filters)}${periodLabel(period) ? ` · ${periodLabel(period)}` : ""}`}>
+            <AllTransactions rows={rows} />
+          </Card>
+        </>
       )}
     </div>
   );
 }
-

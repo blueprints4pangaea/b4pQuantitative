@@ -7,7 +7,7 @@ import Finance from "./finance/Finance";
 import Home from "./home/Home";
 import Operations from "./operations/Operations";
 import { HQ, chapterOptions } from "./shared/chapters";
-import { useFinance, useShipments } from "./shared/data";
+import { useFinance, useScores, useShipments } from "./shared/data";
 import { semesterName, sortSemesters } from "./shared/semester";
 
 const TABS = [
@@ -65,8 +65,14 @@ function FilterBar({ filters, setFilters, chapters, semesters, allowHq }) {
 export default function Shell() {
   const [route, setRoute] = useState(readHash);
   const [filters, setFilters] = useState({ chapter: "all", semester: "all" });
+  // Units on hand and Sheet pulled, reported by the operations page for the header
+  const [opsStats, setOpsStats] = useState(null);
   const ships = useShipments();
   const fin = useFinance();
+  // Active chapters and Sheet pulled for the Expansion header, as expansionDash showed them
+  const scores = useScores();
+  const latestSemester = scores.data?.semesters.at(-1);
+  const activeNow = scores.data?.chapters.filter((ch) => latestSemester in ch.scores || ch.unscored.includes(latestSemester)).length;
 
   useEffect(() => {
     const onHash = () => setRoute(readHash());
@@ -123,6 +129,36 @@ export default function Shell() {
             </div>
             </>
           )}
+          {route.tab === "expansion" && (
+            <>
+              <div className="title-block-cell">
+                <p className="title-block-label">Active chapters</p>
+                <p className="title-block-value">{scores.data ? activeNow : "—"}</p>
+              </div>
+              <div className="title-block-cell">
+                <p className="title-block-label">Sheet pulled</p>
+                <p className="title-block-value">
+                  {scores.data
+                    ? scores.data.source === "snapshot"
+                      ? "Saved copy"
+                      : new Date(scores.data.pulledAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+                    : "—"}
+                </p>
+              </div>
+            </>
+          )}
+          {route.tab === "operations" && (
+            <>
+              <div className="title-block-cell">
+                <p className="title-block-label">Units on hand</p>
+                <p className="title-block-value">{opsStats?.unitsOnHand ?? "—"}</p>
+              </div>
+              <div className="title-block-cell">
+                <p className="title-block-label">Sheet pulled</p>
+                <p className="title-block-value">{opsStats?.sheetPulled ?? "—"}</p>
+              </div>
+            </>
+          )}
         </div>
         <div className="title-block-logo">
           <img className="dashboard-logo" src="/blueprints-logo.png" alt="Blueprints for Pangaea" />
@@ -151,8 +187,8 @@ export default function Shell() {
 
       <div className="combo-body">
         {route.tab === "home" && <Home filters={filters} goTo={goTo} />}
-        {route.tab === "operations" && <Operations />}
-        {route.tab === "finance" && <Finance filters={filters} />}
+        {route.tab === "operations" && <Operations onHeaderStats={setOpsStats} />}
+        {route.tab === "finance" && <Finance filters={filters} setFilters={setFilters} />}
         {route.tab === "expansion" && <Expansion />}
       </div>
     </main>

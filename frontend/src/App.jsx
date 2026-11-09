@@ -1333,7 +1333,7 @@ function ShipmentBarChart({ data, variant = "primary", compact = false }) {
   );
 }
 
-export default function App({ embedded = false }) {
+export default function App({ embedded = false, onHeaderStats }) {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [activeShipmentSubtab, setActiveShipmentSubtab] = useState("current");
   const [items, setItems] = useState([]);
@@ -3393,6 +3393,13 @@ export default function App({ embedded = false }) {
     (total, row) => total + (row.quantity || 0),
     0
   );
+
+  // Inside the combined dashboard the header belongs to the shell, so hand it
+  // the same two numbers this page's own header shows.
+  const unitsOnHandLabel = loading || error ? "—" : formatNumber(totalUnitsOnHand);
+  useEffect(() => {
+    onHeaderStats?.({ unitsOnHand: unitsOnHandLabel, sheetPulled: lastRefreshedLabel });
+  }, [onHeaderStats, unitsOnHandLabel, lastRefreshedLabel]);
 
   return (
     <main className={embedded ? "ops-embedded" : "page-shell"}>

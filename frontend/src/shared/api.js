@@ -4,9 +4,9 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const cache = new Map();
 
 /** Fetch an API path once per page load and share the result between tabs. */
-export function load(path) {
+export function load(path, url = path) {
   if (!cache.has(path)) {
-    const p = fetch(`${API_BASE}${path}`).then((res) => {
+    const p = fetch(`${API_BASE}${url}`).then((res) => {
       if (!res.ok) throw new Error(`${path} could not be loaded (${res.status}).`);
       return res.json();
     });
@@ -16,9 +16,10 @@ export function load(path) {
   return cache.get(path);
 }
 
-/** { data, error, loading } for an API path. */
+/** { data, error, loading, reload } for an API path. reload(url) fetches it again, e.g. with ?nocache=true. */
 export function useApi(path) {
   const [state, setState] = useState({ data: null, error: "", loading: true });
+  const [version, setVersion] = useState(0);
   useEffect(() => {
     let live = true;
     load(path)
@@ -27,6 +28,10 @@ export function useApi(path) {
     return () => {
       live = false;
     };
-  }, [path]);
-  return state;
+  }, [path, version]);
+  const reload = (url = path) => {
+    cache.delete(path);
+    return load(path, url).finally(() => setVersion((v) => v + 1));
+  };
+  return { ...state, reload };
 }
