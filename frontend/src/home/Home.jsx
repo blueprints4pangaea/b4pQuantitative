@@ -1,6 +1,6 @@
 // Home: the few numbers people check most, from each area, plus the ops
 // donation charts (by year, map, destination type, by chapter) and net finances.
-import { useEffect, useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChapterBreakdown, DonatedValueChart } from "../DonationHistory";
 import ShipmentMap from "../ShipmentMap";
 import { LineChart } from "../shared/charts";
@@ -45,20 +45,41 @@ function VsLastYear({ cur, prev, year, format, upIsBad = false }) {
   );
 }
 
-/** Height for each chart, so the two chart rows fill what's left of the window. */
-function useChartHeight() {
-  const calc = () => Math.round(Math.min(230, Math.max(140, window.innerHeight / 2 - 290)));
-  const [h, setH] = useState(calc);
-  useEffect(() => {
-    const on = () => setH(calc());
+// Wide screens fit Home in one window: the map spans two rows on the left,
+// the four smaller charts sit in a 2x2 grid on the right.
+const ONE_SCREEN_MIN_WIDTH = 1200;
+
+/** Chart sizes, from the window height left below the KPI cards. */
+function useChartSize(chartsRef) {
+  const calc = () => {
+    const top = chartsRef.current ? chartsRef.current.getBoundingClientRect().top + window.scrollY : 420;
+    const avail = window.innerHeight - top - 78; // the page keeps its bottom padding
+    if (window.innerWidth < ONE_SCREEN_MIN_WIDTH) {
+      const h = Math.round(Math.min(230, Math.max(140, window.innerHeight / 2 - 290)));
+      return { chartH: h, mapH: h * 2 + 40, gridH: null };
+    }
+    const gridH = Math.max(440, avail);
+    const row = (gridH - 10) / 2;
+    return {
+      gridH,
+      chartH: Math.round(Math.min(260, Math.max(110, row - 100))),
+      // the split card (about 150px) and the map card's title and legend take the rest
+      mapH: Math.round(Math.max(140, gridH - 300)),
+    };
+  };
+  const [size, setSize] = useState({ chartH: 180, mapH: 400, gridH: null });
+  useLayoutEffect(() => {
+    const on = () => setSize(calc());
+    on();
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
   }, []);
-  return h;
+  return size;
 }
 
 export default function Home({ filters, goTo }) {
-  const chartH = useChartHeight();
+  const chartsRef = useRef(null);
+  const { chartH, mapH, gridH } = useChartSize(chartsRef);
   const ships = useShipments();
   const fin = useFinance();
   const scores = useScores();
@@ -212,7 +233,7 @@ export default function Home({ filters, goTo }) {
         </Card>
       </div>
 
-      <div className="combo-home-charts">
+      <div className="combo-home-charts" ref={chartsRef} style={gridH ? { height: `${gridH}px` } : undefined}>
         <Card
           title="Value of Supplies Donated"
           className="combo-home-chart combo-home-year"
@@ -233,12 +254,15 @@ export default function Home({ filters, goTo }) {
         >
           <DonatedValueChart years={yoy} title="" compact />
         </Card>
-        <Card title="Global Distribution of Supplies" className="combo-home-chart combo-home-map">
-          <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} maxHeight={chartH * 2 + 40} />
-        </Card>
-        <Card title="Local vs. International Shipments" className="combo-home-chart combo-home-split">
-          <DestinationSplit types={byType} />
-        </Card>
+        {/* map with the local/international split under it (on wide screens they share the left column) */}
+        <div className="combo-home-left">
+          <Card title="Global Distribution of Supplies" className="combo-home-chart combo-home-map">
+            <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} maxHeight={mapH} />
+          </Card>
+          <Card title="Local vs. International Shipments" className="combo-home-chart combo-home-split">
+            <DestinationSplit types={byType} />
+          </Card>
+        </div>
         <Card title="Donated Value by Chapter" className="combo-home-chart combo-home-chapters">
           {byChapter.length ? <ChapterBreakdown chapters={byChapter} visible /> : <p className="combo-empty">Nothing to show for these filters.</p>}
         </Card>
