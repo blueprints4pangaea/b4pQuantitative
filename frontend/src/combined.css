@@ -657,24 +657,6 @@
   flex: 1 1 240px;
 }
 
-/* Home reuses the ops "Donated value by year" chart, a little shorter so Home fits one screen */
-.donation-year-compact .donation-chart-header {
-  margin-top: 0;
-}
-
-.donation-year-compact .donation-chart-header h3:empty {
-  display: none;
-}
-
-.donation-year-compact .donation-chart {
-  margin-top: 6px;
-  padding: 18px 14px 8px;
-}
-
-.donation-year-compact .donation-plot {
-  height: 150px;
-}
-
 /* Home: card titles share one heading style; chart scope and YoY sit on the right */
 .combo-home .panel-header h3 {
   font-size: 1.15rem;
@@ -726,4 +708,252 @@
   margin: -6px 0 -8px;
   color: var(--bp-ink-muted);
   font-size: 0.78rem;
+}
+
+.combo-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+
+.combo-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bp-blue);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.combo-link-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- Home: KPI cards on one line each, then the five charts in a 6-column grid --- */
+.combo-home-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.combo-home-metrics .metric-label {
+  line-height: 1.15;
+}
+
+.combo-home-charts {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.combo-home-span-2 {
+  grid-column: span 2;
+}
+
+.combo-home-span-4 {
+  grid-column: span 4;
+}
+
+/* the ops pieces carry their own titles and hints; on Home the card title says it */
+.combo-home-chart .donation-chart-header {
+  display: none;
+}
+
+.combo-home-chart .donation-chart,
+.combo-home-chart .shipment-map-canvas,
+.combo-home-chart .shipment-mix-body,
+.combo-home-chart .chapter-breakdown-body {
+  margin-top: 4px;
+}
+
+/* year chart: the hover readout floats over the chart instead of taking a line */
+.combo-home-chart .donation-year-compact {
+  position: relative;
+}
+
+.combo-home-chart .donation-chart-overlay:not([hidden]) {
+  display: block;
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 12px;
+  margin: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--bp-heading, #000e3f);
+}
+
+.combo-home-chart .donation-chart-overlay h3 {
+  display: none;
+}
+
+.combo-home-chart .donation-chart-overlay .donation-chart-detail {
+  color: #ffffff;
+  font-size: 0.76rem;
+}
+
+.combo-home-chart .donation-chart {
+  padding: 14px 12px 6px;
+}
+
+.combo-home-chart .donation-plot {
+  height: var(--home-chart-h);
+}
+
+.combo-home-chart .donation-point-value {
+  padding: 1px 4px;
+  font-size: 0.62rem;
+}
+
+/* only the latest year and the hovered one keep their value label */
+.combo-home-chart .donation-point:not(:last-of-type):not(.active):not(:hover) .donation-point-value {
+  visibility: hidden;
+}
+
+.combo-home-chart .donation-year-full {
+  display: none;
+}
+
+.combo-home-chart .donation-year-short {
+  display: inline;
+}
+
+.combo-home-chart .shipment-map-stage svg {
+  max-height: var(--home-chart-h);
+}
+
+.combo-home-chart .shipment-map-legend {
+  margin-top: 4px;
+  font-size: 0.72rem;
+}
+
+.combo-home-chart .shipment-mix-body {
+  padding: 10px 12px 4px !important;
+}
+
+.combo-home-chart .type-bar-track {
+  min-height: 0;
+  height: calc(var(--home-chart-h) - 30px);
+}
+
+.combo-home-chart .type-bar-label {
+  font-size: 0.78rem;
+}
+
+.combo-home-chart .shipment-type-note {
+  display: none;
+}
+
+.combo-home-chart .chapter-breakdown-body {
+  grid-template-columns: minmax(80px, 110px) minmax(0, 1fr);
+  gap: 12px;
+  height: calc(var(--home-chart-h) + 30px);
+  padding: 10px 12px;
+}
+
+.combo-home-chart .chapter-donut-center strong {
+  font-size: 1.2rem;
+}
+
+.combo-home-chart .chapter-legend {
+  gap: 0;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.combo-home-chart .chapter-legend button {
+  grid-template-columns: 10px minmax(0, 1fr) auto 40px;
+  gap: 8px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
+.combo-home-chart .combo-chart-readout {
+  display: none;
+}
+
+/* the main tabs no longer float over the page when scrolling */
+.combo-main-tabs {
+  position: static;
+}
+
+@media (max-width: 1100px) {
+  .combo-home-charts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .combo-home-span-2,
+  .combo-home-span-4 {
+    grid-column: span 1;
+  }
+}
+
+/* selects take the dashboard font, like every other control */
+select,
+textarea {
+  font: inherit;
+}
+
+/* the shell's Chapter and Semester menus match the ops chapter/year menus */
+.combo-main-tabs .shipment-filter-select {
+  padding: 7px 30px 7px 12px;
+  border: 1px solid var(--bp-line-strong);
+  border-radius: 999px;
+  background-color: var(--bp-surface);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.combo-home-card .panel-header {
+  gap: 10px;
+}
+
+/* chips and small notes use the same type as the ops tabs and buttons */
+.combo-chip {
+  border: 0;
+  background: var(--bp-surface-sunken);
+  color: var(--bp-ink-muted);
+  font-family: var(--bp-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.combo-fineprint {
+  font-family: var(--bp-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--bp-ink-muted);
+}
+
+/* Home density: one-line metric labels, tighter cards */
+.combo-home,
+.combo-home-kpis,
+.combo-home-charts {
+  gap: 10px;
+}
+
+.combo-home .summary-card {
+  padding: 12px 16px;
+}
+
+.combo-home-metrics .metric-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.combo-home-metrics .combo-metric-hint {
+  margin-top: 2px;
+  font-size: 0.72rem;
+}
+
+.combo-home-metrics .metric-card {
+  padding: 8px 10px;
+}
+
+.combo-home-chart .chapter-donut {
+  max-width: calc(var(--home-chart-h) + 10px);
 }

@@ -140,17 +140,17 @@ function StatusBar({ fin, onSync, syncing }) {
   const all = Object.values(fin.origins).length;
   const pulled = fin.data?.pulledAt ? new Date(fin.data.pulledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "—";
   return (
-    <div className="combo-status" aria-live="polite">
+    <p className="combo-fineprint combo-status-line" aria-live="polite">
       <span>
         <i className={`combo-status-dot${live === all && all ? " live" : ""}`} />
         {live === all && all ? "Live from Google Sheets" : live ? "Partly live, partly sample data" : "Sample data"}
       </span>
       <span>Last synced {pulled}</span>
       <span>{formatNum(fin.rows.length)} records</span>
-      <button type="button" className="secondary-button" onClick={onSync} disabled={syncing}>
+      <button type="button" className="combo-link-button" onClick={onSync} disabled={syncing}>
         {syncing ? "Syncing…" : "Sync now"}
       </button>
-    </div>
+    </p>
   );
 }
 

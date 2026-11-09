@@ -141,7 +141,7 @@ export function useDonationHistory() {
   return { history, error };
 }
 
-function ChapterBreakdown({ chapters, visible }) {
+export function ChapterBreakdown({ chapters, visible }) {
   const [activeChapter, setActiveChapter] = useState(null);
   const total = chapters.reduce((sum, entry) => sum + entry.valuation, 0) || 1;
 
@@ -271,7 +271,7 @@ export function DonatedValueChart({ years, visible = true, title = "Donated valu
 
   return (
         <div className={compact ? "donation-year donation-year-compact" : "donation-year"}>
-          <div className="donation-chart-header">
+          <div className={compact ? "donation-chart-header donation-chart-overlay" : "donation-chart-header"} hidden={compact && !active}>
             <h3>{title}</h3>
             <p className="donation-chart-detail">
               {active
