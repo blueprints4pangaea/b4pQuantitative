@@ -24,7 +24,7 @@ function DestinationSplit({ types }) {
         <div key={t.type} className="combo-split-tile">
           <p className="metric-label">{t.type}</p>
           <p className="metric-value">{formatNum(t.count)}</p>
-          <p className="combo-split-share">{Math.round((t.count / total) * 100)}% of shipments</p>
+          <p className="combo-split-share">{Math.round((t.count / total) * 100)}% of Shipments</p>
           <p className="combo-split-detail">
             {formatUsdShort(t.valuation)} · {formatNum(Math.round(t.pounds))} lbs
           </p>
@@ -125,40 +125,40 @@ export default function Home({ filters, goTo }) {
   return (
     <div className="combo-home" style={{ "--home-chart-h": `${chartH}px` }}>
       <div className="combo-home-kpis">
-        <Card title="Operations" className="combo-home-card" actions={chips(describeFilters(filters))}>
+        <Card title="Operations Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
-            <Metric label="HQ units" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations")} />
-            <Metric label="HQ value" value={loading(kpis) ?? formatUsdShort(kpis.data.total_value)} onClick={() => goTo("operations")} />
-            <Metric label="Shipments" value={loading(ships) ?? formatNum(shipRows.length)} onClick={() => goTo("operations")} />
-            <Metric label="Shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
+            <Metric label="HQ Units on Hand" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations")} />
+            <Metric label="HQ Stock Value" value={loading(kpis) ?? formatUsdShort(kpis.data.total_value)} onClick={() => goTo("operations")} />
+            <Metric label="Total Shipments" value={loading(ships) ?? formatNum(shipRows.length)} onClick={() => goTo("operations")} />
+            <Metric label="Value Shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
           </div>
         </Card>
-        <Card title="Finance" className="combo-home-card" actions={chips(describeFilters(filters))}>
+        <Card title="Financial Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
-            <Metric label="Revenue" value={loading(fin) ?? formatUsdShort(t.revenue)} onClick={() => goTo("finance")} />
-            <Metric label="Cost" value={loading(fin) ?? formatUsdShort(t.cost)} onClick={() => goTo("finance")} />
-            <Metric label="Net" value={loading(fin) ?? formatUsdShort(t.net)} tone={t.net < 0 ? "bad" : undefined} onClick={() => goTo("finance")} />
-            <Metric label="Shipping" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
+            <Metric label="Total Revenue" value={loading(fin) ?? formatUsdShort(t.revenue)} onClick={() => goTo("finance")} />
+            <Metric label="Total Expenses" value={loading(fin) ?? formatUsdShort(t.cost)} onClick={() => goTo("finance")} />
+            <Metric label="Net Income" value={loading(fin) ?? formatUsdShort(t.net)} tone={t.net < 0 ? "bad" : undefined} onClick={() => goTo("finance")} />
+            <Metric label="Shipping Costs" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
           </div>
         </Card>
-        <Card title="Expansion" className="combo-home-card" actions={chips(exp ? `${exp.sem} scores` : "Chapter scores")}>
+        <Card title="Chapter Expansion" className="combo-home-card" actions={chips(exp ? `${exp.sem} Scores` : "Chapter Scores")}>
           <div className="combo-home-metrics">
-            <Metric label="Active" value={loading(scores) ?? formatNum(exp.activeCount)} onClick={() => goTo("expansion")} />
+            <Metric label="Active Chapters" value={loading(scores) ?? formatNum(exp.activeCount)} onClick={() => goTo("expansion")} />
             <Metric
-              label="Avg score"
+              label="Average Score"
               value={loading(scores) ?? (exp.avg == null ? "—" : exp.avg.toFixed(1))}
               hint={exp?.prevAvg != null && exp?.avg != null ? `${exp.avg - exp.prevAvg >= 0 ? "▲" : "▼"} ${Math.abs(exp.avg - exp.prevAvg).toFixed(1)}` : undefined}
               onClick={() => goTo("expansion")}
             />
-            <Metric label="Attention" value={loading(scores) ?? formatNum(exp.attention.length)} tone={exp?.attention.length ? "bad" : undefined} onClick={() => goTo("expansion")} />
-            <Metric label="New" value={loading(scores) ?? formatNum(exp.newChapters.length)} onClick={() => goTo("expansion")} />
+            <Metric label="Need Attention" value={loading(scores) ?? formatNum(exp.attention.length)} tone={exp?.attention.length ? "bad" : undefined} onClick={() => goTo("expansion")} />
+            <Metric label="New Chapters" value={loading(scores) ?? formatNum(exp.newChapters.length)} onClick={() => goTo("expansion")} />
           </div>
         </Card>
       </div>
 
       <div className="combo-home-charts">
         <Card
-          title="Supplies donated"
+          title="Value of Supplies Donated"
           className="combo-home-chart combo-home-year"
           actions={
             <div className="combo-home-chart-meta">
@@ -177,21 +177,21 @@ export default function Home({ filters, goTo }) {
         >
           <DonatedValueChart years={yoy} title="" compact />
         </Card>
-        <Card title="Where our supplies have gone" className="combo-home-chart combo-home-map">
+        <Card title="Global Distribution of Supplies" className="combo-home-chart combo-home-map">
           <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} />
         </Card>
-        <Card title="Local vs international" className="combo-home-chart combo-home-split">
+        <Card title="Local vs. International Shipments" className="combo-home-chart combo-home-split">
           <DestinationSplit types={byType} />
         </Card>
-        <Card title="Donated value by chapter" className="combo-home-chart combo-home-chapters">
+        <Card title="Donated Value by Chapter" className="combo-home-chart combo-home-chapters">
           {byChapter.length ? <ChapterBreakdown chapters={byChapter} visible /> : <p className="combo-empty">Nothing to show for these filters.</p>}
         </Card>
         <Card
-          title="Net finances"
+          title="Net Financial Performance"
           className="combo-home-chart combo-home-net"
           actions={
             <div className="combo-home-chart-meta">
-              <span className="combo-chip">By {filters.semester === "all" ? "semester" : "month"}</span>
+              <span className="combo-chip">By {filters.semester === "all" ? "Semester" : "Month"}</span>
             </div>
           }
         >

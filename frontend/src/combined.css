@@ -1019,3 +1019,10 @@ textarea {
       "year net";
   }
 }
+
+/* Home metric labels can take two lines now that they're full names */
+.combo-home-metrics .metric-label {
+  min-height: 2.3em;
+  white-space: normal;
+  overflow: visible;
+}
