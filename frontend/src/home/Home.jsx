@@ -149,7 +149,13 @@ export default function Home({ filters, goTo }) {
             <Metric
               label="Average Score"
               value={loading(scores) ?? (exp.avg == null ? "—" : exp.avg.toFixed(1))}
-              hint={exp?.prevAvg != null && exp?.avg != null ? `${exp.avg - exp.prevAvg >= 0 ? "▲" : "▼"} ${Math.abs(exp.avg - exp.prevAvg).toFixed(1)}` : undefined}
+              hint={
+                exp?.prevAvg != null && exp?.avg != null ? (
+                  <span className={exp.avg - exp.prevAvg >= 0 ? "combo-good" : "combo-bad"}>
+                    {exp.avg - exp.prevAvg >= 0 ? "▲" : "▼"} {Math.abs(exp.avg - exp.prevAvg).toFixed(1)}
+                  </span>
+                ) : undefined
+              }
               onClick={() => goTo("expansion")}
             />
             <Metric label="Need Attention" value={loading(scores) ?? formatNum(exp.attention.length)} tone={exp?.attention.length ? "bad" : undefined} onClick={() => goTo("expansion")} />
