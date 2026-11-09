@@ -26,6 +26,12 @@ const COUNTRIES = {
   Syria: { coords: [38.5, 35.2] },
   Lebanon: { coords: [35.8, 33.9] },
   Mexico: { coords: [-102.5, 24.0] },
+  Turkey: { coords: [35.2, 39.0] },
+  Philippines: { coords: [122.0, 12.5] },
+  Pakistan: { coords: [69.3, 30.0] },
+  Nigeria: { coords: [8.7, 9.1] },
+  Peru: { coords: [-75.0, -9.2] },
+  Liberia: { coords: [-9.4, 6.4] },
 };
 
 const COUNTRY_NAMES = Object.keys(COUNTRIES);

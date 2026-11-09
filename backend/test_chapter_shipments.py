@@ -1,4 +1,5 @@
 from backend.chapter_shipments import OTHER, SHEET_TOTALS, categorize, load_shipments
+from backend.usc_history import SHEET_TOTAL as USC_SHEET_TOTAL
 
 
 def schools():
@@ -11,13 +12,15 @@ def by_name():
 
 def test_item_costs_add_up_to_each_sheet_total():
     for name, shipment in by_name().items():
+        if shipment["chapter"] == "USC":
+            continue
         assert abs(shipment["cost"] - SHEET_TOTALS[name]) < 0.01, name
 
 
 def test_school_order_and_default():
     data = load_shipments()
     assert data["defaultSchool"] == "UC Berkeley"
-    assert [s["name"] for s in data["schools"]] == ["UC Berkeley", "UNO"]
+    assert [s["name"] for s in data["schools"]] == ["UC Berkeley", "UNO", "USC"]
 
 
 def test_summary_per_school():
@@ -67,3 +70,10 @@ def test_every_item_has_a_category():
     for shipment in by_name().values():
         for item in shipment["items"]:
             assert item["category"]
+
+
+def test_usc_adds_up_to_its_sheet_total():
+    usc = schools()["USC"]
+    assert abs(usc["summary"]["cost"] - USC_SHEET_TOTAL) < 0.01
+    assert usc["summary"]["shipments"] == 45
+    assert len({sh["name"] for sh in usc["shipments"]}) == 45

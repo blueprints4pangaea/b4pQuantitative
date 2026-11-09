@@ -618,19 +618,22 @@ def chapter_doc_rows(master_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     for raw in CHAPTER_DOC_SHIPMENTS:
         shipment = build_chapter_doc_shipment(raw)
         year, month = int(shipment["date"][:4]), int(shipment["date"][5:7])
-        if _chapter_month_key(shipment["chapter"], year, month) in in_master:
+        # USC's summary rows only know the semester, so a month match with the master sheet means nothing
+        if shipment["chapter"] != "USC" and _chapter_month_key(shipment["chapter"], year, month) in in_master:
             continue
         rows.append({
             "Chapters": shipment["chapter"],
             "Date of Shipment": f"{MONTH_LABELS[month - 1]} {year}",
             "Recipient Name": ", ".join(shipment["recipients"]),
-            # chapter-doc shipments so far all went to clinics and groups near the chapter
-            "Shipping Destination": "United States",
-            "Shipment Type": "Local",
+            # a named country means it left the US; the rest went to clinics and groups near the chapter
+            "Shipping Destination": shipment.get("destination") or "United States",
+            "Shipment Type": "International" if shipment.get("destination") else "Local",
             "Estimated Shipment Valuation": str(shipment["cost"]),
             "Poundage of shipments (lbs)": "" if shipment["weightLbs"] is None else str(shipment["weightLbs"]),
-            "Comments": f"{shipment['name']}. From the chapter's Shipment History doc; not in the Master Shipment Database yet."
-            + (f" {shipment['note']}" if shipment["note"] else ""),
+            "Comments": f"{shipment['name']}. "
+            + (shipment["note"] if shipment["chapter"] == "USC" else
+               "From the chapter's Shipment History doc; not in the Master Shipment Database yet."
+               + (f" {shipment['note']}" if shipment["note"] else "")),
         })
     return rows
 

@@ -111,6 +111,11 @@ SHIPMENTS = [
     },
 ]
 
+# USC's Historical Impact Summary sheet, hard-coded (see usc_history.py)
+from backend.usc_history import shipments as _usc_shipments  # noqa: E402
+
+SHIPMENTS += _usc_shipments()
+
 #what each shipment's own table says the total is, used by the tests to catch typos in the rows above
 SHEET_TOTALS = {
     "Project Unify": 157819.00,
@@ -152,6 +157,8 @@ def build(raw):
         "recipients": raw["recipients"],
         "weightLbs": raw["weightLbs"],
         "note": raw["note"],
+        # a country for shipments that left the US; None means it stayed in the US
+        "destination": raw.get("destination"),
         "units": sum(i["units"] for i in items),
         "cost": round(sum(i["cost"] for i in items), 2),
         "items": items,
