@@ -30,33 +30,7 @@ function DestinationSplit({ types }) {
           </p>
         </div>
       ))}
-      <div className="combo-split-bar" aria-hidden="true">
-        {types.map((t) => (
-          <span key={t.type} className={`combo-split-bar-${t.type.toLowerCase()}`} style={{ flexGrow: t.count || 0.0001 }} />
-        ))}
-      </div>
     </div>
-  );
-}
-
-// Small line icons for the three overview cards.
-const ICONS = {
-  ops: <path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Zm0 0 9 4.5m0 0 9-4.5M12 12v9" />,
-  fin: <path d="M12 3v18M16.5 7.5c-.8-1.3-2.4-2-4.5-2-2.6 0-4.5 1.3-4.5 3.2 0 4.6 9.3 2.3 9.3 6.9 0 1.9-2 3.4-4.8 3.4-2.2 0-4-.8-4.8-2.3" />,
-  exp: <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />,
-};
-
-/** Card title with a coloured icon badge, so each area reads at a glance. */
-function AreaTitle({ area, children }) {
-  return (
-    <span className="combo-area-title">
-      <span className={`combo-area-icon combo-area-${area}`} aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          {ICONS[area]}
-        </svg>
-      </span>
-      {children}
-    </span>
   );
 }
 
@@ -153,7 +127,7 @@ export default function Home({ filters, goTo }) {
   return (
     <div className="combo-home" style={{ "--home-chart-h": `${chartH}px` }}>
       <div className="combo-home-kpis">
-        <Card title={<AreaTitle area="ops">Operations Overview</AreaTitle>} className="combo-home-card combo-home-card-ops" actions={chips(describeFilters(filters))}>
+        <Card title="Operations Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
             <Metric label="HQ Units on Hand" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations")} />
             <Metric label="HQ Stock Value" value={loading(kpis) ?? formatUsdShort(kpis.data.total_value)} onClick={() => goTo("operations")} />
@@ -161,7 +135,7 @@ export default function Home({ filters, goTo }) {
             <Metric label="Value Shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
           </div>
         </Card>
-        <Card title={<AreaTitle area="fin">Financial Overview</AreaTitle>} className="combo-home-card combo-home-card-fin" actions={chips(describeFilters(filters))}>
+        <Card title="Financial Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
             <Metric label="Total Revenue" value={loading(fin) ?? formatUsdShort(t.revenue)} onClick={() => goTo("finance")} />
             <Metric label="Total Expenses" value={loading(fin) ?? formatUsdShort(t.cost)} onClick={() => goTo("finance")} />
@@ -169,7 +143,7 @@ export default function Home({ filters, goTo }) {
             <Metric label="Shipping Costs" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
           </div>
         </Card>
-        <Card title={<AreaTitle area="exp">Chapter Expansion</AreaTitle>} className="combo-home-card combo-home-card-exp" actions={chips(exp ? `${exp.sem} Scores` : "Chapter Scores")}>
+        <Card title="Chapter Expansion" className="combo-home-card" actions={chips(exp ? `${exp.sem} Scores` : "Chapter Scores")}>
           <div className="combo-home-metrics">
             <Metric label="Active Chapters" value={loading(scores) ?? formatNum(exp.activeCount)} onClick={() => goTo("expansion")} />
             <Metric
@@ -212,7 +186,7 @@ export default function Home({ filters, goTo }) {
           <DonatedValueChart years={yoy} title="" compact />
         </Card>
         <Card title="Global Distribution of Supplies" className="combo-home-chart combo-home-map">
-          <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} maxHeight={Math.round(chartH * 2 + 40)} />
+          <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} />
         </Card>
         <Card title="Local vs. International Shipments" className="combo-home-chart combo-home-split">
           <DestinationSplit types={byType} />
