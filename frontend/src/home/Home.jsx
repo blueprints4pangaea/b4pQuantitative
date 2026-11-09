@@ -1,7 +1,6 @@
 // Home: the few numbers people check most, from each area, plus the ops
 // donation charts (by year, map, destination type, by chapter) and net finances.
 import { useEffect, useMemo, useState } from "react";
-import { useApi } from "../shared/api";
 import { ChapterBreakdown, DonatedValueChart } from "../DonationHistory";
 import ShipmentMap from "../ShipmentMap";
 import { LineChart } from "../shared/charts";
@@ -48,7 +47,6 @@ function useChartHeight() {
 
 export default function Home({ filters, goTo }) {
   const chartH = useChartHeight();
-  const kpis = useApi("/kpis");
   const ships = useShipments();
   const fin = useFinance();
   const scores = useScores();
@@ -127,10 +125,8 @@ export default function Home({ filters, goTo }) {
   return (
     <div className="combo-home" style={{ "--home-chart-h": `${chartH}px` }}>
       <div className="combo-home-kpis">
-        <Card title="Operations Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
+        <Card title="Operations Overview" className="combo-home-card combo-home-card-two" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
-            <Metric label="HQ Units on Hand" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations")} />
-            <Metric label="HQ Stock Value" value={loading(kpis) ?? formatUsdShort(kpis.data.total_value)} onClick={() => goTo("operations")} />
             <Metric label="Total Shipments" value={loading(ships) ?? formatNum(shipRows.length)} onClick={() => goTo("operations")} />
             <Metric label="Value Shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
           </div>

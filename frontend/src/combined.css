@@ -1185,3 +1185,8 @@ textarea {
 .combo-header-status .combo-fineprint {
   margin: 6px 0 0;
 }
+
+/* Home: Operations Overview has two tiles, so they share the full card width */
+.combo-home-card-two .combo-home-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
