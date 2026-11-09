@@ -1247,3 +1247,8 @@ textarea {
     font-size: 0.76rem;
   }
 }
+
+/* Home's smaller chart cards: the line chart draws at the card's width instead of scrolling */
+.combo-home .combo-chart svg {
+  min-width: 0;
+}

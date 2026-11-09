@@ -100,24 +100,33 @@ export function BarChart({ data, series, format = String, height = 240 }) {
  * data:   [{ label, values: [n, n] }]
  * series: [{ name, color, dashed }]
  */
+/** A round step (1, 2, 2.5 or 5 times a power of ten) at least as big as raw. */
+function niceStep(raw) {
+  if (!(raw > 0)) return 1;
+  const p = 10 ** Math.floor(Math.log10(raw));
+  return [1, 2, 2.5, 5, 10].map((m) => m * p).find((v) => v >= raw);
+}
+
 export function LineChart({ data, series, format = String, height = 210 }) {
   const [hover, setHover] = useState(null);
   const [ref, width] = useWidth(data.length > 0);
   if (!data.length) return <p className="combo-empty">Nothing to show for these filters.</p>;
 
-  const W = Math.max(width, 420);
+  const W = Math.max(width, 280);
   const H = height;
   const pad = { top: 14, right: 16, bottom: 30, left: 64 };
   const innerW = W - pad.left - pad.right;
   const innerH = H - pad.top - pad.bottom;
   const all = data.flatMap((d) => d.values);
-  const hi = niceMax(Math.max(0, ...all));
-  const loRaw = Math.min(0, ...all);
-  const lo = loRaw < 0 ? -niceMax(-loRaw) : 0;
+  // evenly spaced ticks on a round step, so labels near zero never bunch up
+  const tickStep = niceStep((Math.max(0, ...all) - Math.min(0, ...all)) / 4);
+  const hi = Math.max(tickStep, Math.ceil(Math.max(0, ...all) / tickStep) * tickStep);
+  const lo = Math.floor(Math.min(0, ...all) / tickStep) * tickStep;
   const y = (v) => pad.top + ((hi - v) / (hi - lo || 1)) * innerH;
   const step = data.length > 1 ? innerW / (data.length - 1) : 0;
   const x = (i) => pad.left + (data.length > 1 ? i * step : innerW / 2);
-  const ticks = lo < 0 ? [hi, hi / 2, 0, lo / 2, lo] : [0, 0.25, 0.5, 0.75, 1].map((t) => t * hi);
+  const ticks = [];
+  for (let t = lo; t <= hi + tickStep / 2; t += tickStep) ticks.push(Math.round(t / tickStep) * tickStep);
   const labelEvery = Math.ceil(data.length / Math.max(1, Math.floor(innerW / 56)));
 
   return (
