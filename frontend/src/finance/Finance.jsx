@@ -223,7 +223,6 @@ function Variance({ scoped, period }) {
 
 function Overview({ rows, scoped, period, filters, shippingCost }) {
   const t = financeTotals(rows);
-  const activeChapters = new Set(rows.map((r) => r.entity).filter((e) => e !== HQ)).size;
   const flow = monthly(rows);
   return (
     <>
@@ -237,8 +236,6 @@ function Overview({ rows, scoped, period, filters, shippingCost }) {
           tone={t.net < 0 ? "bad" : undefined}
           hint={t.revenue ? `${formatPct(t.net / t.revenue)} operating margin` : undefined}
         />
-        <Metric label="Transactions" value={formatNum(rows.length)} />
-        <Metric label="Active Chapters" value={formatNum(activeChapters)} hint="With entries in this period" />
         <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
       <Card
