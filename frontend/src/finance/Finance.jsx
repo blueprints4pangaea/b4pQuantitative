@@ -185,7 +185,7 @@ export default function Finance({ filters }) {
 
   const t = financeTotals(rows);
   const shippingCost = ships.rows
-    .filter((s) => filters.chapter !== HQ && matchChapters(s.chapters, filters) && matchSemester(s, filters))
+    .filter((s) => matchChapters(s.chapters, filters) && matchSemester(s, filters))
     .reduce((s, x) => s + (x.shipping_cost ?? 0), 0);
   const samples = Object.values(fin.origins).filter((o) => o.origin === "sample").map((o) => o.label);
 

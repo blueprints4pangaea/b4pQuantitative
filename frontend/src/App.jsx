@@ -1651,7 +1651,7 @@ export default function App({ embedded = false }) {
           <option value="All">All chapters</option>
           {historyChapters.map((chapter) => (
             <option key={chapter} value={chapter}>
-              {chapter}
+              {chapter === "HQ" ? "HQ (UMich)" : chapter}
             </option>
           ))}
         </select>
@@ -4742,7 +4742,7 @@ export default function App({ embedded = false }) {
                   <option value="All">Chapter: All</option>
                   {historyChapters.map((chapter) => (
                     <option key={chapter} value={chapter}>
-                      Chapter: {chapter}
+                      Chapter: {chapter === "HQ" ? "HQ (UMich)" : chapter}
                     </option>
                   ))}
                 </select>

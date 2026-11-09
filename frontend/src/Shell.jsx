@@ -32,7 +32,7 @@ function FilterBar({ filters, setFilters, chapters, semesters, allowHq }) {
         <select className="shipment-filter-select" value={filters.chapter} onChange={set("chapter")}>
           <option value="all">All of B4P</option>
           <option value="chapters">All chapters</option>
-          {allowHq && <option value={HQ}>HQ only</option>}
+          {allowHq && <option value={HQ}>HQ (UMich)</option>}
           <optgroup label="One chapter">
             {chapters.map((c) => (
               <option key={c} value={c}>
@@ -111,7 +111,9 @@ export default function Shell() {
                     ? "All of B4P"
                     : filters.chapter === "chapters"
                       ? "All chapters"
-                      : filters.chapter
+                      : filters.chapter === HQ
+                        ? "HQ (UMich)"
+                        : filters.chapter
                   : ""}
               </p>
             </div>

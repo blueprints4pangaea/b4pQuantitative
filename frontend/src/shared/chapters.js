@@ -2,10 +2,11 @@
 // ("UMich", "Umich", "Michigan"), so every name goes through canonicalChapter()
 // before it's shown or filtered on. Add a spelling to `aliases` when a sheet uses
 // a new one. Unknown names are kept as they are, trimmed.
+// HQ and the UMich chapter are the same group, so every UMich spelling counts as HQ.
 export const HQ = "HQ";
 
 export const CHAPTERS = [
-  { id: "umich", name: "UMich", aliases: ["umich", "michigan", "university of michigan", "u of m"] },
+  { id: "hq", name: HQ, aliases: ["hq", "umich", "michigan", "university of michigan", "u of m"] },
   { id: "msu", name: "MSU", aliases: ["msu", "michigan state", "michigan state university"] },
   { id: "wsu", name: "WSU", aliases: ["wsu", "wayne", "wayne state", "wayne state university"] },
   { id: "marquette", name: "Marquette", aliases: ["marquette", "marquette university"] },
@@ -41,9 +42,9 @@ export function splitChapters(raw) {
   return [...new Set(String(raw ?? "").split(/[,/&]/).map(canonicalChapter).filter(Boolean))];
 }
 
-/** Every chapter name to offer in the filter: the known list plus anything seen in data. */
+/** Every chapter name to offer in the filter (HQ has its own option): the known list plus anything seen in data. */
 export function chapterOptions(...lists) {
-  const names = new Set(CHAPTERS.map((c) => c.name));
+  const names = new Set(CHAPTERS.map((c) => c.name).filter((n) => n !== HQ));
   for (const list of lists) for (const n of list ?? []) if (n && n !== HQ) names.add(n);
   return [...names].sort((a, b) => a.localeCompare(b));
 }

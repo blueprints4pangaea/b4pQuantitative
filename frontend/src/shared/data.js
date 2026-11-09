@@ -51,15 +51,16 @@ export function matchEntity(entity, filters) {
   return entity === filters.chapter;
 }
 
-/** For rows that list chapters (shipments). HQ has no shipments of its own. */
+/** For rows that list chapters (shipments). UMich shipments count as HQ. */
 export function matchChapters(chapters, filters) {
-  if (filters.chapter === "all" || filters.chapter === "chapters") return true;
+  if (filters.chapter === "all") return true;
+  if (filters.chapter === "chapters") return chapters.some((c) => c !== HQ);
   return chapters.includes(filters.chapter);
 }
 
 export function describeFilters(filters) {
   const who =
-    filters.chapter === "all" ? "All of B4P" : filters.chapter === "chapters" ? "All chapters" : filters.chapter === HQ ? "HQ" : filters.chapter;
+    filters.chapter === "all" ? "All of B4P" : filters.chapter === "chapters" ? "All chapters" : filters.chapter === HQ ? "HQ (UMich)" : filters.chapter;
   return filters.semester === "all" ? who : `${who} · ${filters.semester}`;
 }
 

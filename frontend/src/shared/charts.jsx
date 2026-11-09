@@ -95,6 +95,98 @@ export function BarChart({ data, series, format = String, height = 240 }) {
   );
 }
 
+/**
+ * Line chart, one line per series, with a zero line when values go negative.
+ * data:   [{ label, values: [n, n] }]
+ * series: [{ name, color, dashed }]
+ */
+export function LineChart({ data, series, format = String, height = 210 }) {
+  const [hover, setHover] = useState(null);
+  const [ref, width] = useWidth(data.length > 0);
+  if (!data.length) return <p className="combo-empty">Nothing to show for these filters.</p>;
+
+  const W = Math.max(width, 420);
+  const H = height;
+  const pad = { top: 14, right: 16, bottom: 30, left: 64 };
+  const innerW = W - pad.left - pad.right;
+  const innerH = H - pad.top - pad.bottom;
+  const all = data.flatMap((d) => d.values);
+  const hi = niceMax(Math.max(0, ...all));
+  const loRaw = Math.min(0, ...all);
+  const lo = loRaw < 0 ? -niceMax(-loRaw) : 0;
+  const y = (v) => pad.top + ((hi - v) / (hi - lo || 1)) * innerH;
+  const step = data.length > 1 ? innerW / (data.length - 1) : 0;
+  const x = (i) => pad.left + (data.length > 1 ? i * step : innerW / 2);
+  const ticks = lo < 0 ? [hi, hi / 2, 0, lo / 2, lo] : [0, 0.25, 0.5, 0.75, 1].map((t) => t * hi);
+  const labelEvery = Math.ceil(data.length / Math.max(1, Math.floor(innerW / 56)));
+
+  return (
+    <div className="combo-chart">
+      <div className="combo-legend">
+        {series.map((s, i) => (
+          <span key={s.name}>
+            <i style={{ background: s.color ?? SERIES[i] }} />
+            {s.name}
+          </span>
+        ))}
+      </div>
+      <div className="combo-chart-scroll" ref={ref}>
+        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={series.map((s) => s.name).join(", ")}>
+          {ticks.map((t) => (
+            <g key={t}>
+              <line x1={pad.left} x2={W - pad.right} y1={y(t)} y2={y(t)} className={t === 0 && lo < 0 ? "combo-zero" : "combo-grid"} />
+              <text x={pad.left - 8} y={y(t) + 4} textAnchor="end" className="combo-axis">
+                {format(t)}
+              </text>
+            </g>
+          ))}
+          {hover != null && <line x1={x(hover)} x2={x(hover)} y1={pad.top} y2={pad.top + innerH} className="combo-grid" />}
+          {series.map((s, si) => (
+            <g key={s.name}>
+              <polyline
+                fill="none"
+                stroke={s.color ?? SERIES[si]}
+                strokeWidth={s.dashed ? 1.5 : 2.5}
+                strokeDasharray={s.dashed ? "5 4" : undefined}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                points={data.map((d, i) => `${x(i)},${y(d.values[si])}`).join(" ")}
+              />
+              {data.map((d, i) => (
+                <circle key={i} cx={x(i)} cy={y(d.values[si])} r={hover === i ? 4.5 : s.dashed ? 0 : 3} fill={s.color ?? SERIES[si]} />
+              ))}
+            </g>
+          ))}
+          {data.map((d, i) =>
+            i % labelEvery === 0 || i === data.length - 1 ? (
+              <text key={d.label} x={x(i)} y={H - 10} textAnchor="middle" className="combo-axis">
+                {d.label}
+              </text>
+            ) : null
+          )}
+          {data.map((d, i) => (
+            <rect
+              key={`hit-${d.label}`}
+              x={x(i) - Math.max(step, 24) / 2}
+              y={pad.top}
+              width={Math.max(step, 24)}
+              height={innerH}
+              fill="transparent"
+              onMouseEnter={() => setHover(i)}
+              onMouseLeave={() => setHover(null)}
+            />
+          ))}
+        </svg>
+      </div>
+      <p className="combo-chart-readout" aria-live="polite">
+        {hover == null
+          ? "Hover the chart for exact numbers."
+          : `${data[hover].label}: ` + series.map((s, i) => `${s.name} ${format(data[hover].values[i])}`).join(" · ")}
+      </p>
+    </div>
+  );
+}
+
 /** Horizontal share bars, largest first. items: [{ name, value }] */
 export function ShareBars({ items, format = String, color = SERIES[0], limit = 8 }) {
   if (!items.length) return <p className="combo-empty">Nothing to show for these filters.</p>;
