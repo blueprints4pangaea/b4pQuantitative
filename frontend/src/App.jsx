@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import DonationHistory, { useDonationHistory } from "./DonationHistory";
 import PastShipmentArchive from "./PastShipmentArchive";
 import ShipmentMap from "./ShipmentMap";
+import ShipmentMix from "./ShipmentMix";
 import { summarizeHistoryShipments, useHistoryShipments } from "./historyStats";
+import { splitChapters } from "./shared/chapters";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const SHIPMENT_STORAGE_KEY = "blueprints-current-shipments";
@@ -1332,7 +1334,7 @@ function ShipmentBarChart({ data, variant = "primary", compact = false }) {
   );
 }
 
-export default function App() {
+export default function App({ embedded = false, onHeaderStats }) {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [activeShipmentSubtab, setActiveShipmentSubtab] = useState("current");
   const [items, setItems] = useState([]);
@@ -1422,6 +1424,8 @@ export default function App() {
   const { shipments: historyShipments, error: historyShipmentsError } = useHistoryShipments();
   // Year range for the Shipment KPIs stats and map; null means no limit.
   const [historyYearRange, setHistoryYearRange] = useState({ from: null, to: null });
+  // "All" or one chapter; filters the Shipment KPIs and the shipment archive
+  const [historyChapter, setHistoryChapter] = useState("All");
 
   async function refreshDashboard(showLoader = false) {
     try {
@@ -1589,27 +1593,36 @@ export default function App() {
   const historyToYear = historyYearRange.to ?? historyLastYear;
   const isHistoryYearFiltered =
     historyFromYear !== historyFirstYear || historyToYear !== historyLastYear;
+  const historyChapters = [...new Set((historyShipments ?? []).flatMap((shipment) => splitChapters(shipment.chapter)))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+  const isHistoryChapterFiltered = historyChapter !== "All";
+  const inHistoryChapter = (shipment) =>
+    !isHistoryChapterFiltered || splitChapters(shipment.chapter).includes(historyChapter);
   function inHistoryYearRange(year) {
     return (
       (historyFromYear === null || year >= historyFromYear) &&
       (historyToYear === null || year <= historyToYear)
     );
   }
-  const yearFilteredHistoryShipments = historyShipments?.filter((shipment) =>
-    inHistoryYearRange(shipment.year)
+  const yearFilteredHistoryShipments = historyShipments?.filter(
+    (shipment) => inHistoryYearRange(shipment.year) && inHistoryChapter(shipment)
   );
   const donationHistory =
-    isHistoryYearFiltered && yearFilteredHistoryShipments
+    (isHistoryYearFiltered || isHistoryChapterFiltered) && yearFilteredHistoryShipments
       ? {
           ...summarizeHistoryShipments(yearFilteredHistoryShipments),
           source: fullDonationHistory?.source,
         }
       : fullDonationHistory;
-  const historyRangeLabel = !isHistoryYearFiltered
+  const historyYearLabel = !isHistoryYearFiltered
     ? ""
     : historyFromYear === historyToYear
       ? String(historyFromYear)
       : `${historyFromYear}–${historyToYear}`;
+  const historyRangeLabel = [isHistoryChapterFiltered ? historyChapter : "", historyYearLabel]
+    .filter(Boolean)
+    .join(" · ");
 
   function setHistoryYear(field, value) {
     const year = Number(value);
@@ -1629,6 +1642,21 @@ export default function App() {
 
   const historyYearFilter = historyYears.length ? (
     <div className="history-year-filter">
+      <label>
+        <span>Chapter</span>
+        <select
+          value={historyChapter}
+          onChange={(event) => setHistoryChapter(event.target.value)}
+          disabled={!historyShipments}
+        >
+          <option value="All">All chapters</option>
+          {historyChapters.map((chapter) => (
+            <option key={chapter} value={chapter}>
+              {chapter === "HQ" ? "HQ (UMich)" : chapter}
+            </option>
+          ))}
+        </select>
+      </label>
       <label>
         <span>From</span>
         <select
@@ -1657,13 +1685,16 @@ export default function App() {
           ))}
         </select>
       </label>
-      {isHistoryYearFiltered ? (
+      {isHistoryYearFiltered || isHistoryChapterFiltered ? (
         <button
           type="button"
           className="history-year-reset"
-          onClick={() => setHistoryYearRange({ from: null, to: null })}
+          onClick={() => {
+            setHistoryYearRange({ from: null, to: null });
+            setHistoryChapter("All");
+          }}
         >
-          All years
+          Clear
         </button>
       ) : null}
     </div>
@@ -3229,7 +3260,8 @@ export default function App() {
   // tracked in this app (counted when created within the chosen years).
   const shipmentsByType = shipmentTypeOptions.map((type) => {
     const past = donationHistory?.types?.find((entry) => entry.type === type);
-    const appCount = shipments.filter(
+    // shipments made in this app are HQ's, so they drop out when one chapter is picked
+    const appCount = isHistoryChapterFiltered ? 0 : shipments.filter(
       (shipment) =>
         normalizeShipmentType(shipment.shipmentType) === type &&
         inHistoryYearRange(Number(String(shipment.createdAt || todayIsoDate()).slice(0, 4)))
@@ -3314,43 +3346,7 @@ export default function App() {
 
   // Shipment Mix sits beside the chapter breakdown in the donation section.
   // Each bar carries its own count, value and poundage, so no separate cards.
-  const maxTypeCount = Math.max(...shipmentsByType.map((entry) => entry.count), 1);
-  const shipmentMix = (
-    <div className="shipment-mix">
-      <div className="donation-chart-header">
-        <h3>Shipments by destination type</h3>
-      </div>
-      <div className="shipment-mix-body type-bars">
-        {shipmentsByType.map((entry) => (
-          <div className="type-bar-column" key={entry.type}>
-            <div className="type-bar-track">
-              <div
-                className={entry.count / maxTypeCount < 0.25 ? "type-bar is-short" : "type-bar"}
-                style={{ height: `${Math.max((entry.count / maxTypeCount) * 100, 4)}%` }}
-              >
-                <span className="type-bar-count">{formatNumber(entry.count)}</span>
-              </div>
-            </div>
-            <div className="type-bar-label">
-              <strong>{entry.type}</strong>
-              <span>{formatNumber(entry.count)} shipments</span>
-              {donationHistory?.types?.length ? (
-                <span title={`${formatWholeCurrency(entry.valuation)} · ${formatNumber(Math.round(entry.pounds))} lbs`}>
-                  {formatCompactNumber(entry.valuation, "$")} · {formatCompactNumber(entry.pounds)} lbs
-                </span>
-              ) : null}
-            </div>
-          </div>
-        ))}
-      </div>
-      {donationHistory?.types?.length ? (
-        <p className="shipment-type-note">
-          Includes past shipments from the Master Shipment Database. National shipments count as
-          International.
-        </p>
-      ) : null}
-    </div>
-  );
+  const shipmentMix = <ShipmentMix types={shipmentsByType} withTotals={Boolean(donationHistory?.types?.length)} />;
 
   const lastRefreshedLabel = lastRefreshedAt
     ? lastRefreshedAt.toLocaleTimeString(undefined, {
@@ -3363,8 +3359,16 @@ export default function App() {
     0
   );
 
+  // Inside the combined dashboard the header belongs to the shell, so hand it
+  // the same two numbers this page's own header shows.
+  const unitsOnHandLabel = loading || error ? "—" : formatNumber(totalUnitsOnHand);
+  useEffect(() => {
+    onHeaderStats?.({ unitsOnHand: unitsOnHandLabel, sheetPulled: lastRefreshedLabel });
+  }, [onHeaderStats, unitsOnHandLabel, lastRefreshedLabel]);
+
   return (
-    <main className="page-shell">
+    <main className={embedded ? "ops-embedded" : "page-shell"}>
+      {!embedded && (<>
       {/* A drawing sheet names itself in a ruled title block. This one carries
           the live counts, so the header does a job instead of just branding. */}
       <header className="top-bar">
@@ -3394,6 +3398,7 @@ export default function App() {
           />
         </div>
       </header>
+      </>)}
 
       <section className="tabs-section">
         <div className="tabs" role="tablist" aria-label="Dashboard sections">
@@ -3427,7 +3432,7 @@ export default function App() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Every supply as a line item</h2>
+              <h2>Inventory Line Items</h2>
             </div>
             <div className="inventory-actions">
               <button
@@ -3867,7 +3872,7 @@ export default function App() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Current operating snapshot</h2>
+              <h2>Current Operating Snapshot</h2>
             </div>
             <button
               type="button"
@@ -3891,7 +3896,7 @@ export default function App() {
             <div className="summary-card kpi-card-third kpi-pie-card">
               <div className="panel-header">
                 <div>
-                  <h3>By expiration window</h3>
+                  <h3>Units by Expiration Window</h3>
                 </div>
               </div>
 
@@ -3917,7 +3922,7 @@ export default function App() {
             <div className="summary-card kpi-card-third kpi-pie-card">
               <div className="panel-header">
                 <div>
-                  <h3>By supply category</h3>
+                  <h3>Units by Supply Category</h3>
                 </div>
                 <span className="pill">{formatNumber(uniqueCategories)} categories</span>
               </div>
@@ -3945,7 +3950,7 @@ export default function App() {
             <div className="summary-card kpi-card-third kpi-pie-card">
               <div className="panel-header">
                 <div>
-                  <h3>By unit price</h3>
+                  <h3>Units by Unit Price</h3>
                 </div>
               </div>
 
@@ -3974,7 +3979,7 @@ export default function App() {
           <div className="summary-card pallet-map-card">
             <div className="panel-header">
               <div>
-                <h3>Warehouse pallet layout</h3>
+                <h3>Warehouse Pallet Layout</h3>
               </div>
               <div className="pallet-map-actions">
                 {!isEditingPalletMap ? (
@@ -4602,7 +4607,7 @@ export default function App() {
               <section className="non-inventory-shipments-section">
                 <div className="non-inventory-shipments-heading">
                   <div>
-                    <h3>Document shipments outside inventory</h3>
+                    <h3>Non-Inventory Shipments</h3>
                   </div>
                   <div className="non-inventory-heading-actions">
                     <span>{nonInventoryShipments.length} documented</span>
@@ -4699,6 +4704,19 @@ export default function App() {
                   <option value="All">Shipment type: All</option>
                   <option value="Local">Shipment type: Local</option>
                   <option value="International">Shipment type: International</option>
+                </select>
+                <select
+                  className="shipment-filter-select"
+                  value={historyChapter}
+                  onChange={(event) => setHistoryChapter(event.target.value)}
+                  title="Filters the shipment archive below"
+                >
+                  <option value="All">Chapter: All</option>
+                  {historyChapters.map((chapter) => (
+                    <option key={chapter} value={chapter}>
+                      Chapter: {chapter === "HQ" ? "HQ (UMich)" : chapter}
+                    </option>
+                  ))}
                 </select>
                 <select
                   className="shipment-filter-select"
@@ -4912,6 +4930,7 @@ export default function App() {
               <PastShipmentArchive
                 searchTerm={pastShipmentSearchTerm}
                 typeFilter={pastShipmentTypeFilter}
+                chapterFilter={historyChapter}
               />
             </div>
           ) : null}
@@ -4922,7 +4941,11 @@ export default function App() {
         <>
         <DonationHistory
           history={donationHistory}
-          allYears={fullDonationHistory?.years}
+          allYears={
+            isHistoryChapterFiltered && historyShipments
+              ? summarizeHistoryShipments(historyShipments.filter(inHistoryChapter)).years
+              : fullDonationHistory?.years
+          }
           error={donationHistoryError}
           sideContent={shipmentMix}
           yearFilter={historyYearFilter}
@@ -4938,7 +4961,7 @@ export default function App() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Shipment activity</h2>
+              <h2>Shipment Activity</h2>
             </div>
           </div>
 
@@ -4946,7 +4969,7 @@ export default function App() {
             <div className="shipment-kpi-summary-pane">
               <div className="shipment-kpi-pane-header">
                 <div>
-                  <h3>Current shipment activity</h3>
+                  <h3>Current Shipment Activity</h3>
                 </div>
                 <button
                   type="button"
@@ -4967,7 +4990,7 @@ export default function App() {
             <div className="shipment-kpi-current-table-panel">
               <div className="shipment-kpi-pane-header">
                 <div>
-                  <h3>Active shipment overview</h3>
+                  <h3>Active Shipment Overview</h3>
                 </div>
                 <button
                   type="button"
@@ -5046,7 +5069,7 @@ export default function App() {
               <div className="summary-card shipment-status-card">
                 <div className="panel-header">
                   <div>
-                    <h3>Shipments by current status</h3>
+                    <h3>Shipments by Current Status</h3>
                   </div>
                 </div>
 
@@ -5569,7 +5592,7 @@ export default function App() {
           >
             <div className="shipment-modal-header">
               <div>
-                <h2 id="inventory-kpi-modal-title">Full operating snapshot</h2>
+                <h2 id="inventory-kpi-modal-title">Full Operating Snapshot</h2>
               </div>
               <button
                 type="button"
@@ -5630,7 +5653,7 @@ export default function App() {
           >
             <div className="shipment-modal-header">
               <div>
-                <h2 id="shipment-kpi-modal-title">Full shipment activity snapshot</h2>
+                <h2 id="shipment-kpi-modal-title">Full Shipment Activity Snapshot</h2>
               </div>
               <button
                 type="button"

@@ -1,0 +1,57 @@
+from backend.scores import merge_tabs
+
+# made-up chapters in the same layout as the real sheet (real scores stay out of the repo)
+OLD_TAB = [
+    ["", "Chapter Status:", "91-100 Excellent", "41-65 Weak", "New Chapter", "", "", "", ""],
+    ["Chapter ", "W25", "F25", "Δ Score", "", "Chapter ", "W25", "F25", "Δ Score"],
+    ["Alpha", "", "83", "", "", "Delta", "72", "", ""],
+    ["Beta ", "69", "52", "-17", "", "Echo", "66", "63", "-3"],
+    ["Gamma", "79", "22", "-57", "", "", "", "", ""],
+    ["", "", "", "", "", "Chapter ", "W25", "F25", "Δ Score"],
+    ["", "", "", "", "", "Foxtrot", "95", "94", "-1"],
+]
+
+NEW_TAB = [
+    ["Chapter ", "W25", "F25", "W26", "Δ Score", "", "Chapter ", "W25", "F25", "W26", "Δ Score", "", "# Chapters"],
+    ["Beta ", "69", "52", "63", "11", "", "Alpha", "", "83", "88", "5", "", "9"],
+    ["Gamma", "79", "22", "", "", "", "Echo", "66", "63", "72", "9", "", ""],
+    ["Delta", "72", "MISSING", "76", "4", "", "", "", "", "", "", "", ""],
+    ["Hotel", "", "", "60", "60", "", "Chapter ", "W25", "F25", "W26", "Δ Score", "", ""],
+    ["", "", "", "", "", "", "Foxtrot", "95", "94", "94", "0", "", ""],
+]
+
+
+def by_name():
+    #newer tab passed first on purpose
+    data = merge_tabs([("F25-W26", NEW_TAB), ("W25-F25", OLD_TAB)])
+    return data, {ch["name"]: ch for ch in data["chapters"]}
+
+
+def test_semesters_in_order():
+    data, _ = by_name()
+    assert data["semesters"] == ["W25", "F25", "W26"]
+    assert data["stageSemesters"] == ["F25", "W26"]
+
+
+def test_stage_moves():
+    _, ch = by_name()
+    #alpha moved up, delta dropped back
+    assert ch["Alpha"]["stages"] == {"F25": "Beginner", "W26": "Intermediate"}
+    assert ch["Delta"]["stages"] == {"F25": "Intermediate", "W26": "Beginner"}
+    assert ch["Foxtrot"]["stages"]["W26"] == "Advanced"
+
+
+def test_missing_and_blank():
+    _, ch = by_name()
+    assert ch["Delta"]["unscored"] == ["F25"]
+    assert "W26" not in ch["Gamma"]["scores"]
+    #trailing space in the sheet
+    assert "Beta" in ch
+
+
+def test_newer_tab_wins():
+    old = [r[:] for r in OLD_TAB]
+    old[3][2] = "50"
+    data = merge_tabs([("W25-F25", old), ("F25-W26", NEW_TAB)])
+    beta = next(c for c in data["chapters"] if c["name"] == "Beta")
+    assert beta["scores"] == {"W25": 69, "F25": 52, "W26": 63}

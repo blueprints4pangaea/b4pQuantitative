@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./PastShipmentArchive.css";
+import { splitChapters } from "./shared/chapters";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
@@ -39,10 +40,10 @@ function matchesSearch(shipment, search) {
   ].some((field) => field?.toLowerCase().includes(search));
 }
 
-// Read-only list of shipments recorded in the Master Shipment Database,
-// shown under the app's own past shipments. Filters follow the Past
-// Shipments search box and type filter.
-export default function PastShipmentArchive({ searchTerm, typeFilter }) {
+// Read-only list of shipments recorded in the Master Shipment Database (plus
+// chapter Shipment History docs), shown under the app's own past shipments.
+// Filters follow the Past Shipments search box, type and chapter filters.
+export default function PastShipmentArchive({ searchTerm, typeFilter, chapterFilter = "All" }) {
   const [shipments, setShipments] = useState(null);
   const [error, setError] = useState("");
   const [expandedIds, setExpandedIds] = useState([]);
@@ -74,7 +75,9 @@ export default function PastShipmentArchive({ searchTerm, typeFilter }) {
   const search = searchTerm.trim().toLowerCase();
   const visible = (shipments ?? []).filter(
     (shipment) =>
-      (typeFilter === "All" || shipment.shipment_type === typeFilter) && matchesSearch(shipment, search)
+      (typeFilter === "All" || shipment.shipment_type === typeFilter) &&
+      (chapterFilter === "All" || splitChapters(shipment.chapter).includes(chapterFilter)) &&
+      matchesSearch(shipment, search)
   );
 
   function toggle(id) {
@@ -88,7 +91,7 @@ export default function PastShipmentArchive({ searchTerm, typeFilter }) {
       <div className="past-archive-header">
         <div>
           <p className="section-label">Shipment archive</p>
-          <h3>Earlier shipments from the Master Shipment Database</h3>
+          <h3>Earlier shipments from the Master Shipment Database and chapter docs</h3>
         </div>
         {shipments ? (
           <span className="pill">

@@ -585,18 +585,93 @@ def load_history_snapshot() -> HistorySummary:
     return by_year, by_type, by_chapter
 
 
+# ==============================
+# CHAPTER-DOC SHIPMENTS
+# Shipments hand-copied from each chapter's Shipment History doc (see
+# chapter_shipments.py). Some aren't in the Master Shipment Database yet, so
+# they're added to the history totals and the past shipments list, written as
+# master-sheet rows. A doc shipment is skipped when the master sheet already has
+# one for the same chapter in the same month.
+# ==============================
+from backend.chapter_shipments import SHIPMENTS as CHAPTER_DOC_SHIPMENTS, build as build_chapter_doc_shipment  # noqa: E402
+
+MONTH_LABELS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+]
+
+
+def _chapter_month_key(chapter: str, year: Optional[int], month: Optional[int]) -> Tuple[str, Optional[int], Optional[int]]:
+    return (re.sub(r"\s+", "", chapter or "").lower(), year, month)
+
+
+def chapter_doc_rows(master_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Chapter-doc shipments as master-sheet rows, minus ones the master sheet already has."""
+    in_master = set()
+    for row in master_rows:
+        year, month = parse_shipment_month(str(row.get("Date of Shipment") or ""))
+        for name in str(row.get("Chapters") or "").split(","):
+            if name.strip():
+                in_master.add(_chapter_month_key(name, year, month))
+
+    rows = []
+    for raw in CHAPTER_DOC_SHIPMENTS:
+        shipment = build_chapter_doc_shipment(raw)
+        year, month = int(shipment["date"][:4]), int(shipment["date"][5:7])
+        # USC's summary rows only know the semester, so a month match with the master sheet means nothing
+        if shipment["chapter"] != "USC" and _chapter_month_key(shipment["chapter"], year, month) in in_master:
+            continue
+        rows.append({
+            "Chapters": shipment["chapter"],
+            "Date of Shipment": f"{MONTH_LABELS[month - 1]} {year}",
+            "Recipient Name": ", ".join(shipment["recipients"]),
+            # a named country means it left the US; the rest went to clinics and groups near the chapter
+            "Shipping Destination": shipment.get("destination") or "United States",
+            "Shipment Type": "International" if shipment.get("destination") else "Local",
+            "Estimated Shipment Valuation": str(shipment["cost"]),
+            "Poundage of shipments (lbs)": "" if shipment["weightLbs"] is None else str(shipment["weightLbs"]),
+            "Comments": f"{shipment['name']}. "
+            + (shipment["note"] if shipment["chapter"] == "USC" else
+               "From the chapter's Shipment History doc; not in the Master Shipment Database yet."
+               + (f" {shipment['note']}" if shipment["note"] else "")),
+        })
+    return rows
+
+
+def merge_history_summaries(a: HistorySummary, b: HistorySummary) -> HistorySummary:
+    merged = []
+    for left, right in zip(a, b):
+        out = {key: dict(value) for key, value in left.items()}
+        for key, value in right.items():
+            bucket = out.setdefault(key, {**value, "valuation": 0.0, "pounds": 0.0, "shipments": 0})
+            for field in ("valuation", "pounds", "shipments"):
+                bucket[field] = bucket.get(field, 0) + value.get(field, 0)
+        merged.append(out)
+    return tuple(merged)
+
+
+def load_history_shipment_snapshot_rows() -> List[Dict[str, Any]]:
+    with open(HISTORY_SHIPMENTS_SNAPSHOT_PATH, encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+
 @app.get("/history", response_model=HistoryResponse)
 def get_history():
     source = "live"
     try:
         response = requests.get(HISTORY_SHEET_URL, timeout=15)
         response.raise_for_status()
-        by_year, by_type, by_chapter = summarize_history_rows(list(csv.DictReader(StringIO(response.text))))
+        master_rows = list(csv.DictReader(StringIO(response.text)))
+        by_year, by_type, by_chapter = summarize_history_rows(master_rows + chapter_doc_rows(master_rows))
         if not by_year:
             raise ValueError("No dated shipments found in the history sheet.")
     except Exception as exc:
         print(f"Falling back to the history snapshot: {exc}")
-        by_year, by_type, by_chapter = load_history_snapshot()
+        by_year, by_type, by_chapter = merge_history_summaries(
+            load_history_snapshot(),
+            summarize_history_rows(chapter_doc_rows(load_history_shipment_snapshot_rows())),
+        )
         source = "snapshot"
 
     years = [
@@ -748,11 +823,54 @@ def get_past_shipments():
     try:
         response = requests.get(HISTORY_SHEET_URL, timeout=15)
         response.raise_for_status()
-        shipments = build_past_shipments(list(csv.DictReader(StringIO(response.text))))
+        master_rows = list(csv.DictReader(StringIO(response.text)))
+        shipments = build_past_shipments(master_rows + chapter_doc_rows(master_rows))
         if not shipments:
             raise ValueError("No dated shipments found in the history sheet.")
         return shipments
     except Exception as exc:
         print(f"Falling back to the past shipments snapshot: {exc}")
-    with open(HISTORY_SHIPMENTS_SNAPSHOT_PATH, encoding="utf-8", newline="") as handle:
-        return build_past_shipments(list(csv.DictReader(handle)))
+    master_rows = load_history_shipment_snapshot_rows()
+    return build_past_shipments(master_rows + chapter_doc_rows(master_rows))
+
+
+# ==============================
+# FINANCE + EXPANSION (merged in from financeDashboard and expansionDash)
+# ==============================
+from backend.finance import add_finance_entry, load_finance  # noqa: E402
+from backend.scores import load_scores  # noqa: E402
+
+
+class FinanceEntry(BaseModel):
+    date: str
+    amount: float
+    category: str
+    source: str
+    chapter: Optional[str] = "HQ"
+    notes: Optional[str] = ""
+    type: str  # "Revenue" or "Cost"
+
+
+@app.get("/finance")
+def finance(nocache: bool = False):
+    return {**load_finance(force_reload=nocache), "pulledAt": datetime.utcnow().isoformat() + "Z"}
+
+
+@app.post("/finance/transactions", status_code=201)
+def create_finance_entry(entry: FinanceEntry):
+    if entry.amount <= 0:
+        raise HTTPException(status_code=422, detail="Amount must be more than 0.")
+    if entry.category.strip().lower() == "shipping":
+        raise HTTPException(status_code=422, detail="Shipping costs go in the master shipment sheet, not finance.")
+    return add_finance_entry(entry.model_dump())
+
+
+@app.get("/chapter-scores")
+def chapter_scores():
+    try:
+        data, source = load_scores()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    # "snapshot" means the live sheet wasn't reachable
+    return {**data, "source": source, "pulledAt": datetime.utcnow().isoformat() + "Z"}
+

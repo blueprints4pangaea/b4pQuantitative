@@ -4,10 +4,32 @@
   "outputDirectory": "frontend/dist",
   "framework": null,
   "routes": [
-    { "src": "/items(.*)", "dest": "/api/index.py" },
-    { "src": "/kpis(.*)", "dest": "/api/index.py" },
-    { "src": "/history(.*)", "dest": "/api/index.py" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/items(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/kpis(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/history(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/finance(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/chapter-scores(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }

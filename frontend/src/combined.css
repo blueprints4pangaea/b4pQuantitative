@@ -1,0 +1,1145 @@
+/* ============================================================
+   Combined dashboard: Home, Finance, chapter operations and Expansion.
+   Built on the operations dashboard's tokens and glass theme
+   (styles.css, glass.css, polish.css). Only layout and the few new
+   pieces live here.
+   ============================================================ */
+
+.combo-main-tabs {
+  margin-bottom: 14px;
+}
+
+.combo-body,
+.combo-stack {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* --- shared filters --- */
+.combo-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-inner);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+}
+
+.combo-filters label {
+  display: grid;
+  gap: 6px;
+}
+
+.combo-filters .shipment-filter-select {
+  flex: none;
+  min-width: 220px;
+}
+
+/* --- cards and metrics --- */
+.combo-card {
+  min-width: 0;
+}
+
+.combo-card .panel-header {
+  margin-bottom: 14px;
+}
+
+.combo-subtitle {
+  margin: 6px 0 0;
+  color: var(--bp-ink-muted);
+  font-size: 0.9rem;
+}
+
+.combo-metric-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.combo-metric {
+  min-width: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.combo-metric .metric-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combo-metric-link {
+  cursor: pointer;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.combo-metric-link:hover {
+  border-color: var(--bp-blue-bright);
+}
+
+.combo-metric-link:focus-visible {
+  outline: 2px solid var(--bp-blue-bright);
+  outline-offset: 2px;
+}
+
+.combo-metric-hint {
+  margin: 8px 0 0;
+  color: var(--bp-ink-faint);
+  font-size: 0.8rem;
+}
+
+.combo-metric-bad .metric-value {
+  color: var(--bp-red);
+}
+
+.combo-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.combo-subtabs {
+  margin-bottom: 0;
+}
+
+.combo-notice {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-inner);
+  background: var(--glass-bg-inner);
+  color: var(--bp-ink-muted);
+  font-size: 0.92rem;
+}
+
+.combo-notice strong {
+  color: var(--bp-ink);
+}
+
+.combo-loading,
+.combo-empty {
+  margin: 0;
+  padding: 18px 0;
+  color: var(--bp-ink-muted);
+}
+
+/* --- tables --- */
+.combo-table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.combo-table td {
+  white-space: normal;
+}
+
+.combo-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.combo-row-highlight td {
+  background: rgba(0, 105, 243, 0.07);
+  font-weight: 600;
+}
+
+/* --- charts --- */
+.combo-chart-scroll {
+  overflow-x: auto;
+}
+
+.combo-chart svg {
+  display: block;
+  min-width: 480px;
+}
+
+.combo-grid {
+  stroke: var(--glass-line, #e2e2e2);
+}
+
+.combo-zero {
+  stroke: var(--bp-ink-faint);
+}
+
+.combo-axis {
+  fill: var(--bp-ink-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 8px;
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+}
+
+.combo-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
+.combo-chart-readout {
+  margin: 8px 0 0;
+  min-height: 1.3em;
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-share {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.combo-share li {
+  display: grid;
+  grid-template-columns: minmax(90px, 1.2fr) 2fr auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.combo-share-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combo-share-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 14, 63, 0.06);
+  overflow: hidden;
+}
+
+.combo-share-track span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.combo-share-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.combo-share-value small {
+  color: var(--bp-ink-faint);
+  margin-left: 4px;
+}
+
+/* --- add entry form (finance) --- */
+.combo-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.combo-form label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.combo-form input,
+.combo-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--bp-line);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--bp-ink);
+  font: inherit;
+}
+
+.combo-form .combo-form-wide {
+  grid-column: span 2;
+}
+
+.combo-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.combo-form-status {
+  color: var(--bp-ink-muted);
+  font-size: 0.9rem;
+}
+
+/* --- the original operations page, shown inside the Operations tab --- */
+.ops-embedded .tabs-section {
+  position: static;
+  margin-bottom: 18px;
+}
+
+/* --- Expansion pages: map expansionDash's tokens onto the ops ones --- */
+.expansion-scope {
+  --ink: var(--bp-ink);
+  --ink-muted: var(--bp-ink-muted);
+  --ink-faint: var(--bp-ink-faint);
+  --line: var(--glass-line);
+  --bp-navy: var(--bp-heading);
+  --glass-inner: var(--glass-bg-inner);
+  --radius: var(--glass-radius);
+  --radius-inner: var(--glass-radius-inner);
+  --display: var(--bp-display);
+  --body: var(--bp-body);
+}
+
+.expansion-scope h3,
+.expansion-scope h4 {
+  margin: 0;
+  font-family: var(--bp-display);
+  font-weight: 500;
+  color: var(--bp-heading);
+}
+
+.expansion-scope .eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--bp-ink-faint);
+}
+
+@media (max-width: 1100px) {
+  .combo-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .combo-metric-row,
+  .combo-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .combo-filters .shipment-filter-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .combo-filters label {
+    flex: 1 1 100%;
+  }
+}
+
+/* styles.css gives every table min-width: 1320px for the inventory table; these don't need it */
+.combo-table,
+.expansion-scope table {
+  min-width: 0;
+}
+
+.combo-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.combo-body > *,
+.combo-stack > * {
+  min-width: 0;
+}
+
+/* --- tabs and shared filters on one row --- */
+.combo-main-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.combo-main-tabs .combo-filters {
+  padding: 8px 12px;
+  border-radius: 999px;
+  align-items: center;
+}
+
+.combo-main-tabs .combo-filters label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.combo-main-tabs .shipment-filter-select {
+  min-width: 170px;
+  padding: 8px 12px;
+}
+
+/* --- Home: everything on one screen --- */
+.combo-home {
+  display: grid;
+  gap: 14px;
+}
+
+.combo-home .summary-card {
+  padding: 16px 18px;
+}
+
+.combo-home .panel-header {
+  margin-bottom: 4px;
+}
+
+.combo-home .combo-subtitle {
+  margin-top: 2px;
+  font-size: 0.82rem;
+}
+
+.combo-home-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.combo-home-card .section-label {
+  margin-bottom: 2px;
+}
+
+.combo-home-sub {
+  margin: 0 0 10px;
+  color: var(--bp-ink-faint);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combo-home-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.combo-home-metrics .metric-card {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.combo-home-metrics .metric-label {
+  font-size: 0.78rem;
+}
+
+.combo-home-metrics .metric-value {
+  margin-top: 4px;
+  font-size: 1.25rem;
+}
+
+.combo-home .combo-legend {
+  margin-bottom: 2px;
+}
+
+.combo-home .combo-chart-readout {
+  margin-top: 2px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 1100px) {
+  .combo-home-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- donut (finance cost by category) --- */
+.combo-donut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.combo-donut-value {
+  fill: var(--bp-heading);
+  font-family: var(--bp-display);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-donut-legend {
+  flex: 1 1 200px;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+}
+
+.combo-donut-legend li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 8px;
+}
+
+.combo-donut-legend li.active {
+  background: rgba(0, 105, 243, 0.07);
+}
+
+.combo-donut-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.combo-donut-legend small {
+  color: var(--bp-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- finance: status bar, toolbars, pager, sortable headers --- */
+.combo-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 10px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-inner);
+  background: var(--glass-bg);
+  font-size: 0.88rem;
+  color: var(--bp-ink-muted);
+}
+
+.combo-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: #e29b00;
+}
+
+.combo-status-dot.live {
+  background: #12a58a;
+}
+
+.combo-status .secondary-button {
+  margin-left: auto;
+}
+
+.combo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.combo-toolbar .search-input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 9px 12px;
+}
+
+.combo-toolbar .shipment-filter-select {
+  flex: 0 0 auto;
+  min-width: 170px;
+  padding: 9px 12px;
+}
+
+.combo-toolbar-count {
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+}
+
+.combo-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+}
+
+.combo-pager button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.combo-sort {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.combo-variance {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 18px;
+  padding: 10px 16px;
+  border-radius: var(--glass-radius-inner);
+  background: rgba(0, 105, 243, 0.07);
+  font-size: 0.88rem;
+}
+
+.combo-good {
+  color: #13795b;
+  font-weight: 600;
+}
+
+.combo-bad {
+  color: var(--bp-red);
+  font-weight: 600;
+}
+
+.combo-tier {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--bp-surface-sunken);
+  color: var(--bp-blue);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.combo-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.combo-metric-inline {
+  text-align: right;
+}
+
+.combo-metric-inline p:last-child {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+}
+
+.combo-toolbar .combo-subtabs {
+  margin: 0;
+}
+
+.combo-nowrap {
+  white-space: nowrap;
+}
+
+.combo-toolbar-scope .combo-subtabs {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.combo-toolbar-scope .shipment-subtab {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+}
+
+.combo-toolbar-scope .search-input {
+  flex: 1 1 240px;
+}
+
+/* Home: card titles share one heading style; chart scope and YoY sit on the right */
+.combo-home .panel-header h3 {
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.combo-home .panel-header {
+  align-items: center;
+}
+
+.combo-home-chart-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.combo-home-chart-meta .donation-yoy {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.combo-home-chart-meta .donation-yoy-change {
+  font-size: 0.9rem;
+}
+
+.combo-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--glass-border, var(--bp-line));
+  border-radius: 999px;
+  background: var(--glass-bg-inner, var(--bp-surface));
+  color: var(--bp-ink-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.combo-home-chart .donation-chart-detail {
+  font-size: 0.78rem;
+  color: var(--bp-ink-faint);
+}
+
+/* small status line at the top of a page, e.g. "showing a saved copy" */
+.combo-fineprint {
+  margin: -6px 0 -8px;
+  color: var(--bp-ink-muted);
+  font-size: 0.78rem;
+}
+
+.combo-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+
+.combo-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bp-blue);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.combo-link-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- Home: KPI cards on one line each, then the five charts in a 6-column grid --- */
+.combo-home-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.combo-home-metrics .metric-label {
+  line-height: 1.15;
+}
+
+.combo-home-charts {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.combo-home-span-2 {
+  grid-column: span 2;
+}
+
+.combo-home-span-4 {
+  grid-column: span 4;
+}
+
+/* the ops pieces carry their own titles and hints; on Home the card title says it */
+.combo-home-chart .donation-chart-header {
+  display: none;
+}
+
+.combo-home-chart .donation-chart,
+.combo-home-chart .shipment-map-canvas,
+.combo-home-chart .shipment-mix-body,
+.combo-home-chart .chapter-breakdown-body {
+  margin-top: 4px;
+}
+
+/* year chart: the hover readout floats over the chart instead of taking a line */
+.combo-home-chart .donation-year-compact {
+  position: relative;
+}
+
+.combo-home-chart .donation-chart-overlay:not([hidden]) {
+  display: block;
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 12px;
+  margin: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--bp-heading, #000e3f);
+}
+
+.combo-home-chart .donation-chart-overlay h3 {
+  display: none;
+}
+
+.combo-home-chart .donation-chart-overlay .donation-chart-detail {
+  color: #ffffff;
+  font-size: 0.76rem;
+}
+
+.combo-home-chart .donation-chart {
+  padding: 14px 12px 6px;
+}
+
+.combo-home-chart .donation-plot {
+  height: var(--home-chart-h);
+}
+
+.combo-home-chart .donation-point-value {
+  padding: 1px 4px;
+  font-size: 0.62rem;
+}
+
+.combo-home-chart .shipment-map-stage svg {
+  max-height: var(--home-chart-h);
+}
+
+.combo-home-chart .shipment-map-legend {
+  margin-top: 4px;
+  font-size: 0.72rem;
+}
+
+.combo-home-chart .shipment-mix-body {
+  padding: 10px 12px 4px !important;
+}
+
+.combo-home-chart .type-bar-track {
+  min-height: 0;
+  height: calc(var(--home-chart-h) - 30px);
+}
+
+.combo-home-chart .type-bar-label {
+  font-size: 0.78rem;
+}
+
+.combo-home-chart .shipment-type-note {
+  display: none;
+}
+
+.combo-home-chart .chapter-breakdown-body {
+  grid-template-columns: minmax(80px, 110px) minmax(0, 1fr);
+  gap: 12px;
+  height: calc(var(--home-chart-h) + 30px);
+  padding: 10px 12px;
+}
+
+.combo-home-chart .chapter-donut-center strong {
+  font-size: 1.2rem;
+}
+
+.combo-home-chart .chapter-legend {
+  gap: 0;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.combo-home-chart .chapter-legend button {
+  grid-template-columns: 10px minmax(0, 1fr) auto 40px;
+  gap: 8px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
+.combo-home-chart .combo-chart-readout {
+  display: none;
+}
+
+/* the main tabs no longer float over the page when scrolling */
+.combo-main-tabs {
+  position: static;
+}
+
+@media (max-width: 1100px) {
+  .combo-home-charts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .combo-home-span-2,
+  .combo-home-span-4 {
+    grid-column: span 1;
+  }
+}
+
+/* selects take the dashboard font, like every other control */
+select,
+textarea {
+  font: inherit;
+}
+
+/* the shell's Chapter and Semester menus match the ops chapter/year menus */
+.combo-main-tabs .shipment-filter-select {
+  padding: 7px 30px 7px 12px;
+  border: 1px solid var(--bp-line-strong);
+  border-radius: 999px;
+  background-color: var(--bp-surface);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.combo-home-card .panel-header {
+  gap: 10px;
+}
+
+/* chips and small notes use the same type as the ops tabs and buttons */
+.combo-chip {
+  border: 0;
+  background: var(--bp-surface-sunken);
+  color: var(--bp-ink-muted);
+  font-family: var(--bp-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.combo-fineprint {
+  font-family: var(--bp-body);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--bp-ink-muted);
+}
+
+/* Home density: one-line metric labels, tighter cards */
+.combo-home,
+.combo-home-kpis,
+.combo-home-charts {
+  gap: 10px;
+}
+
+.combo-home .summary-card {
+  padding: 12px 16px;
+}
+
+.combo-home-metrics .metric-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.combo-home-metrics .combo-metric-hint {
+  margin-top: 2px;
+  font-size: 0.72rem;
+}
+
+.combo-home-metrics .metric-card {
+  padding: 8px 10px;
+}
+
+.combo-home-chart .chapter-donut {
+  max-width: calc(var(--home-chart-h) + 10px);
+}
+
+/* Home chart grid: big map with the split and chapters beside it, then the two line charts */
+.combo-home-charts {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-areas:
+    "map map map map split split"
+    "map map map map chapters chapters"
+    "year year year net net net";
+}
+
+.combo-home-year { grid-area: year; }
+.combo-home-map { grid-area: map; }
+.combo-home-split { grid-area: split; }
+.combo-home-net { grid-area: net; }
+.combo-home-chapters { grid-area: chapters; }
+
+.combo-home-map {
+  display: flex;
+  flex-direction: column;
+}
+
+.combo-home-map .shipment-map {
+  flex: 1;
+}
+
+.combo-home-chart.combo-home-map .shipment-map-stage svg {
+  max-height: none;
+}
+
+.combo-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.combo-split-tile {
+  padding: 12px;
+  border: 1px solid var(--glass-border, var(--bp-line));
+  border-radius: 12px;
+  background: var(--glass-bg-inner, var(--bp-surface));
+}
+
+.combo-split-tile .metric-label {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.combo-split-tile .metric-value {
+  margin: 4px 0 0;
+  font-size: 1.6rem;
+}
+
+.combo-split-share {
+  margin: 2px 0 0;
+  color: var(--bp-blue);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.combo-split-detail {
+  margin: 6px 0 0;
+  color: var(--bp-ink-muted);
+  font-size: 0.74rem;
+}
+
+@media (max-width: 1100px) {
+  .combo-home-charts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "map map"
+      "split chapters"
+      "year net";
+  }
+}
+
+/* Home metric labels can take two lines now that they're full names */
+.combo-home-metrics .metric-label {
+  min-height: 2.3em;
+  white-space: normal;
+  overflow: visible;
+}
+
+/* keep the donut's centre text inside the hole on Home's smaller donut */
+.combo-home-chart .chapter-donut-center strong {
+  font-size: 1.05rem;
+}
+
+.combo-home-chart .chapter-donut-center span {
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+}
+
+/* Home tiles: content sits at the top, and hovering doesn't lift the tile out of line */
+.combo-home-metrics .metric-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.combo-home-metrics .metric-card:hover {
+  transform: none;
+}
+
+/* --- Expansion: a bit more compact than expansionDash's own sizes --- */
+.expansion-scope .segmented button {
+  padding: 5px 12px;
+  font-size: 0.85rem;
+}
+
+.expansion-scope .filter-bar {
+  gap: 12px 20px;
+}
+
+.expansion-scope .hero-value {
+  font-size: clamp(2.2rem, 4.5vw, 3rem);
+}
+
+.expansion-scope .delta-pill b {
+  font-size: 1.1rem;
+}
+
+.expansion-scope .stat-tile {
+  padding: 12px 14px;
+}
+
+.expansion-scope .stat-tile strong {
+  font-size: 1.35rem;
+}
+
+.expansion-scope .card-head h3 {
+  font-size: 1.15rem;
+}
+
+.expansion-scope .card {
+  padding: 14px 16px;
+}
+
+.expansion-scope .standing {
+  padding: 3px 10px;
+}
+
+.expansion-scope .standing-name strong {
+  font-size: 0.92rem;
+}
+
+.expansion-scope .standing-score strong {
+  font-size: 0.95rem;
+}
+
+.expansion-scope .shipment-subtab {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-size: 0.9rem;
+}
+
+
+
+/* Where chapters stand: two columns so all chapters fit in one view */
+.expansion-scope .scores-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+}
+
+.expansion-scope .standings-axes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+}
+
+.expansion-scope .standings ul {
+  columns: 2;
+  column-gap: 18px;
+}
+
+.expansion-scope .standings li {
+  break-inside: avoid;
+}
+
+.expansion-scope .standings-axis,
+.expansion-scope .standing {
+  grid-template-columns: minmax(84px, 0.9fr) minmax(0, 1.6fr) 58px;
+  gap: 8px;
+}
+
+.expansion-scope .track-axis span {
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 1100px) {
+  .expansion-scope .scores-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Band key under the two-column standings (the axis only shows thresholds) */
+.expansion-scope .legend { flex-wrap: wrap; row-gap: 4px; }
+.expansion-scope .band-key i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
