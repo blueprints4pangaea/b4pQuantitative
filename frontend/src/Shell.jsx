@@ -53,6 +53,8 @@ function FilterBar({ filters, setFilters, chapters, semesters, allowHq }) {
           ))}
         </select>
       </label>
+      {/* a tab can add its own filters here (Finance puts Year and Month in it) */}
+      <span id="combo-extra-filters" className="combo-extra-filters" />
       {(filters.chapter !== "all" || filters.semester !== "all") && (
         <button type="button" className="secondary-button" onClick={() => setFilters({ chapter: "all", semester: "all" })}>
           Clear filters
