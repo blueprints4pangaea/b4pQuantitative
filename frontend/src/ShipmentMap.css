@@ -199,10 +199,12 @@
   outline: none;
 }
 
+/* top right, so it never sits on the legend along the bottom */
 .shipment-map-expand {
   position: absolute;
+  z-index: 1;
   right: 10px;
-  bottom: 8px;
+  top: 8px;
   padding: 3px 9px;
   border-radius: 999px;
   background: var(--bp-surface-sunken);
