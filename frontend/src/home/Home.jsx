@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../shared/api";
 import { ChapterBreakdown, DonatedValueChart } from "../DonationHistory";
 import ShipmentMap from "../ShipmentMap";
-import ShipmentMix from "../ShipmentMix";
 import { LineChart } from "../shared/charts";
 import { HQ } from "../shared/chapters";
 import { describeFilters, filterShipments, matchChapters, useFinance, useScores, useShipments } from "../shared/data";
@@ -16,9 +15,28 @@ import { COST_COLOR, Card, Metric, REVENUE_COLOR } from "../shared/ui";
 
 const add = (rows, key) => rows.reduce((s, r) => s + (r[key] ?? 0), 0);
 
+/** Local and international shipments as two number tiles with their share. */
+function DestinationSplit({ types }) {
+  const total = types.reduce((n, t) => n + t.count, 0) || 1;
+  return (
+    <div className="combo-split">
+      {types.map((t) => (
+        <div key={t.type} className="combo-split-tile">
+          <p className="metric-label">{t.type}</p>
+          <p className="metric-value">{formatNum(t.count)}</p>
+          <p className="combo-split-share">{Math.round((t.count / total) * 100)}% of shipments</p>
+          <p className="combo-split-detail">
+            {formatUsdShort(t.valuation)} · {formatNum(Math.round(t.pounds))} lbs
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Height for each chart, so the two chart rows fill what's left of the window. */
 function useChartHeight() {
-  const calc = () => Math.round(Math.min(230, Math.max(70, window.innerHeight / 2 - 310)));
+  const calc = () => Math.round(Math.min(230, Math.max(140, window.innerHeight / 2 - 290)));
   const [h, setH] = useState(calc);
   useEffect(() => {
     const on = () => setH(calc());
@@ -141,7 +159,7 @@ export default function Home({ filters, goTo }) {
       <div className="combo-home-charts">
         <Card
           title="Supplies donated"
-          className="combo-home-chart combo-home-span-2"
+          className="combo-home-chart combo-home-year"
           actions={
             <div className="combo-home-chart-meta">
               {yoyChange != null && (
@@ -159,18 +177,18 @@ export default function Home({ filters, goTo }) {
         >
           <DonatedValueChart years={yoy} title="" compact />
         </Card>
-        <Card title="Where our supplies have gone" className="combo-home-chart combo-home-span-2">
+        <Card title="Where our supplies have gone" className="combo-home-chart combo-home-map">
           <ShipmentMap shipments={ships.loading ? null : shipRows} error={ships.error} />
         </Card>
-        <Card title="Shipments by destination type" className="combo-home-chart combo-home-span-2">
-          <ShipmentMix types={byType} />
+        <Card title="Local vs international" className="combo-home-chart combo-home-split">
+          <DestinationSplit types={byType} />
         </Card>
-        <Card title="Donated value by chapter" className="combo-home-chart combo-home-span-2">
+        <Card title="Donated value by chapter" className="combo-home-chart combo-home-chapters">
           {byChapter.length ? <ChapterBreakdown chapters={byChapter} visible /> : <p className="combo-empty">Nothing to show for these filters.</p>}
         </Card>
         <Card
           title="Net finances"
-          className="combo-home-chart combo-home-span-4"
+          className="combo-home-chart combo-home-net"
           actions={
             <div className="combo-home-chart-meta">
               <span className="combo-chip">By {filters.semester === "all" ? "semester" : "month"}</span>
