@@ -1,0 +1,360 @@
+/* ============================================================
+   Combined dashboard: Home, Finance, chapter operations and Expansion.
+   Built on the operations dashboard's tokens and glass theme
+   (styles.css, glass.css, polish.css). Only layout and the few new
+   pieces live here.
+   ============================================================ */
+
+.combo-main-tabs {
+  margin-bottom: 14px;
+}
+
+.combo-body,
+.combo-stack {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* --- shared filters --- */
+.combo-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-inner);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+}
+
+.combo-filters label {
+  display: grid;
+  gap: 6px;
+}
+
+.combo-filters .shipment-filter-select {
+  flex: none;
+  min-width: 220px;
+}
+
+/* --- cards and metrics --- */
+.combo-card {
+  min-width: 0;
+}
+
+.combo-card .panel-header {
+  margin-bottom: 14px;
+}
+
+.combo-subtitle {
+  margin: 6px 0 0;
+  color: var(--bp-ink-muted);
+  font-size: 0.9rem;
+}
+
+.combo-metric-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.combo-metric {
+  min-width: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.combo-metric .metric-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combo-metric-link {
+  cursor: pointer;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.combo-metric-link:hover {
+  border-color: var(--bp-blue-bright);
+}
+
+.combo-metric-link:focus-visible {
+  outline: 2px solid var(--bp-blue-bright);
+  outline-offset: 2px;
+}
+
+.combo-metric-hint {
+  margin: 8px 0 0;
+  color: var(--bp-ink-faint);
+  font-size: 0.8rem;
+}
+
+.combo-metric-bad .metric-value {
+  color: var(--bp-red);
+}
+
+.combo-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.combo-subtabs {
+  margin-bottom: 0;
+}
+
+.combo-notice {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-inner);
+  background: var(--glass-bg-inner);
+  color: var(--bp-ink-muted);
+  font-size: 0.92rem;
+}
+
+.combo-notice strong {
+  color: var(--bp-ink);
+}
+
+.combo-loading,
+.combo-empty {
+  margin: 0;
+  padding: 18px 0;
+  color: var(--bp-ink-muted);
+}
+
+/* --- tables --- */
+.combo-table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.combo-table td {
+  white-space: normal;
+}
+
+.combo-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.combo-row-highlight td {
+  background: rgba(0, 105, 243, 0.07);
+  font-weight: 600;
+}
+
+/* --- charts --- */
+.combo-chart-scroll {
+  overflow-x: auto;
+}
+
+.combo-chart svg {
+  display: block;
+  min-width: 480px;
+}
+
+.combo-grid {
+  stroke: var(--glass-line, #e2e2e2);
+}
+
+.combo-zero {
+  stroke: var(--bp-ink-faint);
+}
+
+.combo-axis {
+  fill: var(--bp-ink-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 8px;
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+}
+
+.combo-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
+.combo-chart-readout {
+  margin: 8px 0 0;
+  min-height: 1.3em;
+  color: var(--bp-ink-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-share {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.combo-share li {
+  display: grid;
+  grid-template-columns: minmax(90px, 1.2fr) 2fr auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.combo-share-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combo-share-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 14, 63, 0.06);
+  overflow: hidden;
+}
+
+.combo-share-track span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.combo-share-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.combo-share-value small {
+  color: var(--bp-ink-faint);
+  margin-left: 4px;
+}
+
+/* --- add entry form (finance) --- */
+.combo-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.combo-form label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.combo-form input,
+.combo-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--bp-line);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--bp-ink);
+  font: inherit;
+}
+
+.combo-form .combo-form-wide {
+  grid-column: span 2;
+}
+
+.combo-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.combo-form-status {
+  color: var(--bp-ink-muted);
+  font-size: 0.9rem;
+}
+
+/* --- the original operations page, shown inside the Operations tab --- */
+.ops-embedded .tabs-section {
+  position: static;
+  margin-bottom: 0;
+}
+
+/* --- Expansion pages: map expansionDash's tokens onto the ops ones --- */
+.expansion-scope {
+  --ink: var(--bp-ink);
+  --ink-muted: var(--bp-ink-muted);
+  --ink-faint: var(--bp-ink-faint);
+  --line: var(--glass-line);
+  --bp-navy: var(--bp-heading);
+  --glass-inner: var(--glass-bg-inner);
+  --radius: var(--glass-radius);
+  --radius-inner: var(--glass-radius-inner);
+  --display: var(--bp-display);
+  --body: var(--bp-body);
+}
+
+.expansion-scope h3,
+.expansion-scope h4 {
+  margin: 0;
+  font-family: var(--bp-display);
+  font-weight: 500;
+  color: var(--bp-heading);
+}
+
+.expansion-scope .eyebrow {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--bp-ink-faint);
+}
+
+@media (max-width: 1100px) {
+  .combo-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .combo-metric-row,
+  .combo-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .combo-filters .shipment-filter-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .combo-filters label {
+    flex: 1 1 100%;
+  }
+}
+
+/* styles.css gives every table min-width: 1320px for the inventory table; these don't need it */
+.combo-table,
+.expansion-scope table:not(.ship-table) {
+  min-width: 0;
+}
+
+.combo-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.combo-body > *,
+.combo-stack > * {
+  min-width: 0;
+}

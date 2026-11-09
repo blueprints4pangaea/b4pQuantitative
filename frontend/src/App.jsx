@@ -1332,7 +1332,7 @@ function ShipmentBarChart({ data, variant = "primary", compact = false }) {
   );
 }
 
-export default function App() {
+export default function App({ embedded = false }) {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [activeShipmentSubtab, setActiveShipmentSubtab] = useState("current");
   const [items, setItems] = useState([]);
@@ -3364,7 +3364,8 @@ export default function App() {
   );
 
   return (
-    <main className="page-shell">
+    <main className={embedded ? "ops-embedded" : "page-shell"}>
+      {!embedded && (<>
       {/* A drawing sheet names itself in a ruled title block. This one carries
           the live counts, so the header does a job instead of just branding. */}
       <header className="top-bar">
@@ -3394,6 +3395,7 @@ export default function App() {
           />
         </div>
       </header>
+      </>)}
 
       <section className="tabs-section">
         <div className="tabs" role="tablist" aria-label="Dashboard sections">

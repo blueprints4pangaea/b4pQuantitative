@@ -761,13 +761,32 @@ def get_past_shipments():
 # ==============================
 # FINANCE + EXPANSION (merged in from financeDashboard and expansionDash)
 # ==============================
-from backend.finance import load_finance  # noqa: E402
+from backend.finance import add_finance_entry, load_finance  # noqa: E402
 from backend.scores import load_scores  # noqa: E402
 
 
+class FinanceEntry(BaseModel):
+    date: str
+    amount: float
+    category: str
+    source: str
+    chapter: Optional[str] = "HQ"
+    notes: Optional[str] = ""
+    type: str  # "Revenue" or "Cost"
+
+
 @app.get("/finance")
-def finance():
-    return {**load_finance(), "pulledAt": datetime.utcnow().isoformat() + "Z"}
+def finance(nocache: bool = False):
+    return {**load_finance(force_reload=nocache), "pulledAt": datetime.utcnow().isoformat() + "Z"}
+
+
+@app.post("/finance/transactions", status_code=201)
+def create_finance_entry(entry: FinanceEntry):
+    if entry.amount <= 0:
+        raise HTTPException(status_code=422, detail="Amount must be more than 0.")
+    if entry.category.strip().lower() == "shipping":
+        raise HTTPException(status_code=422, detail="Shipping costs go in the master shipment sheet, not finance.")
+    return add_finance_entry(entry.model_dump())
 
 
 @app.get("/chapter-scores")
@@ -778,3 +797,13 @@ def chapter_scores():
         raise HTTPException(status_code=503, detail=str(exc))
     # "snapshot" means the live sheet wasn't reachable
     return {**data, "source": source, "pulledAt": datetime.utcnow().isoformat() + "Z"}
+
+
+from backend.chapter_shipments import load_shipments as load_chapter_shipments  # noqa: E402
+
+
+@app.get("/chapter-shipments")
+def chapter_shipments():
+    # hand-copied from each chapter's Shipment History doc. These include
+    # shipments that aren't in the master shipment sheet, so both are kept
+    return load_chapter_shipments()
