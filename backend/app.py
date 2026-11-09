@@ -31,7 +31,8 @@ app.add_middleware(
 # GOOGLE SHEET CONFIG
 # ==============================
 SHEET_ID = "1OiT1QBBnlazfRCv0MgwE_LXvIVJNAVQha1Ez7M4Vc88"
-# The "Final Inventorying" tab: every inventoried item, all pallets. Box type
+# The inventory tab (gid 1019735220, titled "CLASSIFIED Inventorying Responses" as of
+# Nov 2026; once "Final Inventorying"): every inventoried item, all pallets. Box type
 # is column B ("Category"), pallet is J and box number is K.
 SHEET_GID = "1019735220"
 SHEET_URL = (
@@ -46,6 +47,14 @@ HISTORY_SHEET_GID = "0"
 HISTORY_SHEET_URL = (
     f"https://docs.google.com/spreadsheets/d/{HISTORY_SHEET_ID}/export"
     f"?format=csv&gid={HISTORY_SHEET_GID}"
+)
+# New shipments (2026 on): the "International Shipment Tracker" tab of the live
+# inventory sheet. The Master Shipment Database is frozen; rows added here are
+# read on top of it. Same column headers as the Master Shipment List.
+TRACKER_SHEET_GID = "512340193"
+TRACKER_SHEET_URL = (
+    f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export"
+    f"?format=csv&gid={TRACKER_SHEET_GID}"
 )
 HISTORY_SNAPSHOT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "history_snapshot.json")
 # A saved copy of the Master Shipment List rows, used when the live sheet can't be read.
@@ -650,6 +659,18 @@ def merge_history_summaries(a: HistorySummary, b: HistorySummary) -> HistorySumm
     return tuple(merged)
 
 
+def load_tracker_rows() -> List[Dict[str, Any]]:
+    """Rows from the International Shipment Tracker tab, or [] if it can't be read."""
+    try:
+        response = requests.get(TRACKER_SHEET_URL, timeout=15)
+        response.raise_for_status()
+        rows = csv.DictReader(StringIO(response.text))
+        return [row for row in rows if any(str(value or "").strip() for value in row.values())]
+    except Exception as exc:
+        print(f"Could not read the International Shipment Tracker tab: {exc}")
+        return []
+
+
 def load_history_shipment_snapshot_rows() -> List[Dict[str, Any]]:
     with open(HISTORY_SHIPMENTS_SNAPSHOT_PATH, encoding="utf-8", newline="") as handle:
         return list(csv.DictReader(handle))
@@ -659,18 +680,22 @@ def load_history_shipment_snapshot_rows() -> List[Dict[str, Any]]:
 @app.get("/history", response_model=HistoryResponse)
 def get_history():
     source = "live"
+    tracker_rows = load_tracker_rows()
     try:
         response = requests.get(HISTORY_SHEET_URL, timeout=15)
         response.raise_for_status()
         master_rows = list(csv.DictReader(StringIO(response.text)))
-        by_year, by_type, by_chapter = summarize_history_rows(master_rows + chapter_doc_rows(master_rows))
+        by_year, by_type, by_chapter = summarize_history_rows(
+            master_rows + chapter_doc_rows(master_rows + tracker_rows) + tracker_rows
+        )
         if not by_year:
             raise ValueError("No dated shipments found in the history sheet.")
     except Exception as exc:
         print(f"Falling back to the history snapshot: {exc}")
+        snapshot_rows = load_history_shipment_snapshot_rows()
         by_year, by_type, by_chapter = merge_history_summaries(
             load_history_snapshot(),
-            summarize_history_rows(chapter_doc_rows(load_history_shipment_snapshot_rows())),
+            summarize_history_rows(chapter_doc_rows(snapshot_rows + tracker_rows) + tracker_rows),
         )
         source = "snapshot"
 
@@ -772,15 +797,25 @@ def history_amount(row: Dict[str, Any], header: str) -> Optional[float]:
 
 
 def parse_shipment_month(value: str) -> Tuple[Optional[int], Optional[int]]:
+    # the tracker tab may hold real dates: 11/9/2026 or 2026-11-09
+    numeric = re.match(r"\s*(\d{1,2})/\d{1,2}/((?:19|20)\d{2})", value) or re.match(r"\s*((?:19|20)\d{2})-(\d{1,2})-\d{1,2}", value)
+    if numeric:
+        a, b = numeric.groups()
+        year, month = (int(b), int(a)) if "/" in numeric.group() else (int(a), int(b))
+        if 1 <= month <= 12:
+            return year, month
     year_match = re.search(r"(19|20)\d{2}", value)
     month_match = re.match(r"\s*([A-Za-z]+)", value)
     month = MONTH_NUMBERS.get(month_match.group(1).lower()) if month_match else None
     return (int(year_match.group()) if year_match else None), month
 
 
-def build_past_shipments(rows: List[Dict[str, Any]]) -> List[PastShipment]:
+def build_past_shipments(rows: List[Dict[str, Any]], tracker_rows: Optional[List[Dict[str, Any]]] = None) -> List[PastShipment]:
+    """Master rows (ids master-N) plus tracker rows (ids tracker-N), newest first."""
+    tagged = [("master", index, row) for index, row in enumerate(rows, start=2)]
+    tagged += [("tracker", index, row) for index, row in enumerate(tracker_rows or [], start=2)]
     shipments = []
-    for index, row in enumerate(rows, start=2):
+    for prefix, index, row in tagged:
         date_label = history_cell(row, "Date of Shipment") or ""
         year, month = parse_shipment_month(date_label)
         # Summary rows at the bottom of the sheet have no shipment date.
@@ -789,7 +824,7 @@ def build_past_shipments(rows: List[Dict[str, Any]]) -> List[PastShipment]:
         link = history_cell(row, "Link to documentation of shipment")
         shipments.append(
             PastShipment(
-                id=f"master-{index}",
+                id=f"{prefix}-{index}",
                 year=year,
                 month=month,
                 date_label=date_label,
@@ -820,18 +855,19 @@ def build_past_shipments(rows: List[Dict[str, Any]]) -> List[PastShipment]:
 
 @app.get("/history/shipments", response_model=List[PastShipment])
 def get_past_shipments():
+    tracker_rows = load_tracker_rows()
     try:
         response = requests.get(HISTORY_SHEET_URL, timeout=15)
         response.raise_for_status()
         master_rows = list(csv.DictReader(StringIO(response.text)))
-        shipments = build_past_shipments(master_rows + chapter_doc_rows(master_rows))
+        shipments = build_past_shipments(master_rows + chapter_doc_rows(master_rows + tracker_rows), tracker_rows)
         if not shipments:
             raise ValueError("No dated shipments found in the history sheet.")
         return shipments
     except Exception as exc:
         print(f"Falling back to the past shipments snapshot: {exc}")
     master_rows = load_history_shipment_snapshot_rows()
-    return build_past_shipments(master_rows + chapter_doc_rows(master_rows))
+    return build_past_shipments(master_rows + chapter_doc_rows(master_rows + tracker_rows), tracker_rows)
 
 
 # ==============================
