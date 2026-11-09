@@ -102,7 +102,7 @@ function aggregate(shipments) {
 }
 
 // shipments: Master Shipment Database rows, already narrowed to the chosen years.
-export default function ShipmentMap({ shipments, error: loadError, rangeLabel }) {
+export default function ShipmentMap({ shipments, error: loadError, rangeLabel, maxHeight = MAX_DISPLAY_HEIGHT }) {
   const [world, setWorld] = useState(null);
   const [mapError, setMapError] = useState("");
   const [active, setActive] = useState(null);
@@ -244,7 +244,7 @@ export default function ShipmentMap({ shipments, error: loadError, rangeLabel })
             }
           }}
         >
-          {renderMap(MAX_DISPLAY_HEIGHT, () => setExpanded(true))}
+          {renderMap(maxHeight, () => setExpanded(true))}
           {legend}
           <span className="shipment-map-expand" aria-hidden="true">⤢ Expand</span>
         </div>
