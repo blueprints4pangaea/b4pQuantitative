@@ -332,8 +332,6 @@ function Revenue({ rows, filters }) {
 function Cost({ rows, filters, shippingCost }) {
   const mine = rows.filter((r) => r.flow === "cost");
   const byCategory = groupSum(mine, "category");
-  const payees = groupSum(mine, "source");
-  const total = sum(mine) || 1;
   const chart = periodChart(mine, filters);
   return (
     <>
@@ -342,25 +340,12 @@ function Cost({ rows, filters, shippingCost }) {
         <Metric label="Largest Category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
         <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
-      <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
-        <LineChart height={240} data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
-      </Card>
-      <div className="combo-two-col">
-        <Card title="Expenses by Category" subtitle="Where the money goes">
-          <Donut items={byCategory} format={formatUsd} centerLabel="Total cost" />
+      <div className="combo-chart-side">
+        <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
+          <LineChart height={330} data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
         </Card>
-        <Card title="Top Payees" subtitle="Vendors ranked by total spent">
-          <Table
-            columns={[
-              { key: "rank", label: "Rank", render: (r) => payees.indexOf(r) + 1 },
-              { key: "name", label: "Payee" },
-              { key: "count", label: "Entries", align: "right" },
-              { key: "value", label: "Total spent", align: "right", render: (r) => formatUsd(r.value) },
-              { key: "share", label: "Share", align: "right", render: (r) => formatPct(r.value / total) },
-            ]}
-            rows={payees.slice(0, 12)}
-            rowKey={(r) => r.name}
-          />
+        <Card title="Expenses by Category" subtitle="Where the money goes" className="combo-side-donut">
+          <Donut items={byCategory} format={formatUsd} centerLabel="Total cost" />
         </Card>
       </div>
       <Card title="Expense Ledger" subtitle="Every cost entry, newest first">
