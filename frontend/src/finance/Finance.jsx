@@ -1,18 +1,17 @@
-// Finance, ported from the Blueprints financeDashboard with every one of its
-// tabs: Overview & KPIs, Revenue, Expenses, Chapters and Transactions.
+// Finance, ported from the Blueprints financeDashboard with these
+// tabs: Overview & KPIs, Revenue, Expenses and Chapters.
 // Chapter and semester come from the shared filter bar; Year and Month are the
 // finance dashboard's own extra filters.
 // Shipping is not a finance category: shipping cost comes from the master
 // shipment sheet and is shown next to finance cost, never added into it twice.
 import { useMemo, useState } from "react";
-import { BarChart, Donut, MoneyFlowChart, ShareBars } from "../shared/charts";
-import { HQ, chapterOptions } from "../shared/chapters";
+import { Donut, LineChart, MoneyFlowChart, ShareBars } from "../shared/charts";
+import { HQ } from "../shared/chapters";
 import { describeFilters, matchChapters, matchEntity, matchSemester, useFinance, useShipments } from "../shared/data";
 import { formatMonth, formatNum, formatPct, formatUsd, formatUsdShort } from "../shared/format";
 import { sortSemesters } from "../shared/semester";
 import { COST_COLOR, Card, ErrorText, Loading, Metric, MetricRow, Notice, REVENUE_COLOR, Subtabs, Table } from "../shared/ui";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const NET_COLOR = "#0035a2";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const LEDGER_PAGE = 10;
@@ -224,7 +223,6 @@ function Variance({ scoped, period }) {
 
 function Overview({ rows, scoped, period, filters, shippingCost }) {
   const t = financeTotals(rows);
-  const activeChapters = new Set(rows.map((r) => r.entity).filter((e) => e !== HQ)).size;
   const flow = monthly(rows);
   return (
     <>
@@ -238,8 +236,6 @@ function Overview({ rows, scoped, period, filters, shippingCost }) {
           tone={t.net < 0 ? "bad" : undefined}
           hint={t.revenue ? `${formatPct(t.net / t.revenue)} operating margin` : undefined}
         />
-        <Metric label="Transactions" value={formatNum(rows.length)} />
-        <Metric label="Active Chapters" value={formatNum(activeChapters)} hint="With entries in this period" />
         <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
       <Card
@@ -294,12 +290,10 @@ function Revenue({ rows, filters }) {
     <>
       <MetricRow>
         <Metric label="Total Revenue" value={formatUsd(sum(mine))} />
-        <Metric label="Entries" value={formatNum(mine.length)} />
-        <Metric label="Sources" value={formatNum(bySource.length)} />
         <Metric label="Largest Source" value={bySource[0]?.name ?? "—"} hint={bySource[0] ? formatUsd(bySource[0].value) : undefined} />
       </MetricRow>
       <Card title={`Revenue by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
-        <BarChart data={chart.data} series={[{ name: "Revenue", color: REVENUE_COLOR }]} format={formatUsdShort} />
+        <LineChart height={240} data={chart.data} series={[{ name: "Revenue", color: REVENUE_COLOR }]} format={formatUsdShort} />
       </Card>
       <div className="combo-two-col">
         <Card title="Revenue by Source" subtitle="Who the money comes from">
@@ -339,12 +333,11 @@ function Cost({ rows, filters, shippingCost }) {
     <>
       <MetricRow>
         <Metric label="Total Expenses" value={formatUsd(sum(mine))} hint="Not counting shipping" />
-        <Metric label="Entries" value={formatNum(mine.length)} />
         <Metric label="Largest Category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
         <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
       </MetricRow>
       <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
-        <BarChart data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
+        <LineChart height={240} data={chart.data} series={[{ name: "Expenses", color: COST_COLOR }]} format={formatUsdShort} />
       </Card>
       <div className="combo-two-col">
         <Card title="Expenses by Category" subtitle="Where the money goes">
@@ -502,153 +495,11 @@ function Chapters({ rows, filters, setFilters }) {
   );
 }
 
-function AllTransactions({ rows }) {
-  const [query, setQuery] = useState("");
-  const [type, setType] = useState("all");
-  const [chapter, setChapter] = useState("all");
-  const [pageSize, setPageSize] = useState(15);
-  const [page, setPage] = useState(1);
-  const chapters = useMemo(() => [...new Set(rows.map((r) => r.entity))].sort((a, b) => (a === HQ ? -1 : b === HQ ? 1 : a.localeCompare(b))), [rows]);
-  const q = query.trim().toLowerCase();
-  const shown = rows
-    .filter((r) => (type === "all" || r.flow === type) && (chapter === "all" || r.entity === chapter) && (!q || searchText(r).includes(q)))
-    .sort((a, b) => b.date.localeCompare(a.date));
-  const pages = Math.max(1, Math.ceil(shown.length / pageSize));
-  const p = Math.min(page, pages);
-  const on = (fn) => (e) => {
-    fn(e.target.value);
-    setPage(1);
-  };
-  return (
-    <>
-      <div className="combo-toolbar">
-        <input type="search" className="search-input" placeholder="Search all records" value={query} onChange={on(setQuery)} />
-        <select className="shipment-filter-select" value={type} onChange={on(setType)} aria-label="Type">
-          <option value="all">Revenue and cost</option>
-          <option value="revenue">Revenue</option>
-          <option value="cost">Expenses</option>
-        </select>
-        <select className="shipment-filter-select" value={chapter} onChange={on(setChapter)} aria-label="Chapter">
-          <option value="all">Every chapter</option>
-          {chapters.map((c) => (
-            <option key={c} value={c}>
-              {showEntity(c)}
-            </option>
-          ))}
-        </select>
-        <select className="shipment-filter-select" value={pageSize} onChange={on((v) => setPageSize(Number(v)))} aria-label="Rows per page">
-          {[15, 30, 50, 100].map((n) => (
-            <option key={n} value={n}>
-              {n} per page
-            </option>
-          ))}
-        </select>
-      </div>
-      <Table
-        columns={[
-          { key: "date", label: "Date", render: (r) => <span className="combo-nowrap">{r.date}</span> },
-          { key: "flow", label: "Type", render: (r) => <span className={r.flow === "revenue" ? "combo-good" : "combo-bad"}>{r.flow === "revenue" ? "Revenue" : "Expense"}</span> },
-          { key: "entity", label: "Chapter", render: (r) => showEntity(r.entity) },
-          { key: "category", label: "Category" },
-          { key: "source", label: "From / paid to" },
-          { key: "amount", label: "Amount", align: "right", render: (r) => formatUsd(r.amount) },
-          { key: "notes", label: "Notes", render: (r) => <span title={r.notes}>{r.notes}</span> },
-        ]}
-        rows={shown.slice((p - 1) * pageSize, p * pageSize)}
-        rowKey={(r) => r.id}
-      />
-      <Pager page={p} pages={pages} total={shown.length} onPage={setPage} />
-    </>
-  );
-}
-
-/** Add one entry to the Revenue or Expenses sheet (ported from the finance dashboard's form). */
-function AddEntry({ chapters, onSaved }) {
-  const blank = { type: "Revenue", date: new Date().toISOString().slice(0, 10), amount: "", category: "", source: "", chapter: HQ, notes: "" };
-  const [form, setForm] = useState(blank);
-  const [status, setStatus] = useState("");
-  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
-
-  async function submit(e) {
-    e.preventDefault();
-    setStatus("Saving…");
-    try {
-      const res = await fetch(`${API_BASE}/finance/transactions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, amount: Number(form.amount) }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail : `Couldn't save (${res.status}).`);
-      if (body.written_to_gspread) {
-        setStatus(`Saved to the ${body.sheet_target}. Syncing…`);
-        setForm(blank);
-        await onSaved();
-        setStatus(`Saved to the ${body.sheet_target}.`);
-      } else {
-        setStatus("Not saved to Google Sheets: the service account isn't set up for the finance sheets yet.");
-      }
-    } catch (err) {
-      setStatus(err.message);
-    }
-  }
-
-  return (
-    <form className="combo-form" onSubmit={submit}>
-      <label>
-        <span className="title-block-label">Type</span>
-        <select value={form.type} onChange={set("type")}>
-          <option>Revenue</option>
-          <option>Cost</option>
-        </select>
-      </label>
-      <label>
-        <span className="title-block-label">Date</span>
-        <input type="date" required value={form.date} onChange={set("date")} />
-      </label>
-      <label>
-        <span className="title-block-label">Amount ($)</span>
-        <input type="number" min="0.01" step="0.01" required value={form.amount} onChange={set("amount")} />
-      </label>
-      <label>
-        <span className="title-block-label">Chapter</span>
-        <select value={form.chapter} onChange={set("chapter")}>
-          <option value={HQ}>HQ (UMich)</option>
-          {chapters.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        <span className="title-block-label">Category</span>
-        <input required placeholder={form.type === "Revenue" ? "Donation, Grant…" : "Supplies, Software…"} value={form.category} onChange={set("category")} />
-      </label>
-      <label>
-        <span className="title-block-label">{form.type === "Revenue" ? "From" : "Paid to"}</span>
-        <input required value={form.source} onChange={set("source")} />
-      </label>
-      <label className="combo-form-wide">
-        <span className="title-block-label">Notes</span>
-        <input value={form.notes} onChange={set("notes")} />
-      </label>
-      <div className="combo-form-actions">
-        <button type="submit" className="secondary-button">
-          Add entry
-        </button>
-        <span className="combo-form-status" aria-live="polite">
-          {status || "Shipping costs go in the master shipment sheet, not here."}
-        </span>
-      </div>
-    </form>
-  );
-}
-
 const TABS = [
   { id: "overview", label: "Overview & KPIs" },
   { id: "revenue", label: "Revenue" },
   { id: "cost", label: "Expenses" },
   { id: "chapters", label: "Chapters" },
-  { id: "transactions", label: "Transactions" },
 ];
 
 export default function Finance({ filters, setFilters }) {
@@ -699,16 +550,6 @@ export default function Finance({ filters, setFilters }) {
       {tab === "revenue" && <Revenue rows={rows} filters={filters} />}
       {tab === "cost" && <Cost rows={rows} filters={filters} shippingCost={shippingCost} />}
       {tab === "chapters" && <Chapters rows={everyone} filters={filters} setFilters={setFilters} />}
-      {tab === "transactions" && (
-        <>
-          <Card title="Add a Transaction" subtitle="Goes straight into the Revenue or Expenses Google Sheet">
-            <AddEntry chapters={chapterOptions(fin.rows.map((r) => r.entity))} onSaved={sync} />
-          </Card>
-          <Card title="All Transactions" subtitle={`${describeFilters(filters)}${periodLabel(period) ? ` · ${periodLabel(period)}` : ""}`}>
-            <AllTransactions rows={rows} />
-          </Card>
-        </>
-      )}
     </div>
   );
 }

@@ -209,7 +209,7 @@
 
 .combo-share li {
   display: grid;
-  grid-template-columns: minmax(90px, 1.2fr) 2fr auto;
+  grid-template-columns: minmax(90px, 1.2fr) 2fr 8rem;
   align-items: center;
   gap: 12px;
   font-size: 0.9rem;
@@ -237,6 +237,7 @@
 .combo-share-value {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
 }
 
 .combo-share-value small {
