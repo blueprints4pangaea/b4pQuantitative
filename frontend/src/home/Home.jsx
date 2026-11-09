@@ -54,12 +54,13 @@ export default function Home({ filters, goTo }) {
 
   const loading = (r) => (r.loading ? "…" : r.error ? "—" : null);
 
+  const scopeLabel = filters.chapter === "all" ? "All of B4P" : filters.chapter === "chapters" ? "All chapters" : filters.chapter === HQ ? "HQ (UMich)" : filters.chapter;
   const sub = (text) => <p className="combo-home-sub">{text}</p>;
 
   return (
     <div className="combo-home">
       <div className="combo-home-kpis">
-        <Card label="Operations" className="combo-home-card">
+        <Card title="Operations" className="combo-home-card">
           {sub(`Inventory: HQ · Shipments: ${describeFilters(filters)}`)}
           <div className="combo-home-metrics">
             <Metric label="Units in inventory" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations")} />
@@ -68,7 +69,7 @@ export default function Home({ filters, goTo }) {
             <Metric label="Value shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
           </div>
         </Card>
-        <Card label="Finance" className="combo-home-card">
+        <Card title="Finance" className="combo-home-card">
           {sub(describeFilters(filters))}
           <div className="combo-home-metrics">
             <Metric label="Revenue" value={loading(fin) ?? formatUsdShort(t.revenue)} onClick={() => goTo("finance")} />
@@ -77,7 +78,7 @@ export default function Home({ filters, goTo }) {
             <Metric label="Shipping cost" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
           </div>
         </Card>
-        <Card label="Expansion" className="combo-home-card">
+        <Card title="Expansion" className="combo-home-card">
           {sub(exp ? `Chapter scores · ${exp.sem}` : "Chapter scores")}
           <div className="combo-home-metrics">
             <Metric label="Active chapters" value={loading(scores) ?? formatNum(exp.activeCount)} onClick={() => goTo("expansion")} />
@@ -99,12 +100,36 @@ export default function Home({ filters, goTo }) {
 
       <div className="combo-two-col">
         <Card
-          title="Value of supplies donated, year over year"
-          subtitle={`${filters.chapter === "all" ? "All of B4P" : filters.chapter === "chapters" ? "All chapters" : filters.chapter === HQ ? "HQ (UMich)" : filters.chapter}${yoyChange != null ? ` · ${yoyChange >= 0 ? "+" : ""}${formatPct(yoyChange)} vs the year before` : ""}`}
+          title="Value of supplies donated"
+          className="combo-home-chart"
+          actions={
+            <div className="combo-home-chart-meta">
+              {yoyChange != null && (
+                <p className={yoyChange >= 0 ? "donation-yoy is-up" : "donation-yoy is-down"}>
+                  <span className="donation-yoy-change">
+                    <span aria-hidden="true">{yoyChange >= 0 ? "▲" : "▼"}</span> {Math.round(Math.abs(yoyChange) * 100)}% YoY
+                  </span>
+                  <span className="donation-yoy-detail">
+                    {lastTwo[1].year} v {lastTwo[0].year}
+                  </span>
+                </p>
+              )}
+              <span className="combo-chip">{scopeLabel}</span>
+            </div>
+          }
         >
           <DonatedValueChart years={yoy} title="" compact />
         </Card>
-        <Card title="Net finances" subtitle={`Revenue minus cost by ${filters.semester === "all" ? "semester" : "month"} · ${describeFilters(filters)}`}>
+        <Card
+          title="Net finances"
+          className="combo-home-chart"
+          actions={
+            <div className="combo-home-chart-meta">
+              <span className="combo-chip">By {filters.semester === "all" ? "semester" : "month"}</span>
+              <span className="combo-chip">{describeFilters(filters)}</span>
+            </div>
+          }
+        >
           <LineChart
             data={net.map((d) => ({ label: d.label, values: [d.net, d.revenue, d.cost] }))}
             series={[

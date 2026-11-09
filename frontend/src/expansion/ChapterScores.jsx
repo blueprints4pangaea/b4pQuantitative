@@ -404,10 +404,6 @@ export default function ChapterScores({ data }) {
 
   return (
     <section className="chapter-scores">
-      {data.source === "snapshot" && (
-        <p className="notice">Showing a saved copy of the scores sheet. Live data turns on once the sheet is connected.</p>
-      )}
-
       <FilterBar
         data={data}
         summary={summary}

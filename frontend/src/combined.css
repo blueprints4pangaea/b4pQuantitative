@@ -287,7 +287,7 @@
 /* --- the original operations page, shown inside the Operations tab --- */
 .ops-embedded .tabs-section {
   position: static;
-  margin-bottom: 0;
+  margin-bottom: 18px;
 }
 
 /* --- Expansion pages: map expansionDash's tokens onto the ops ones --- */
@@ -673,4 +673,57 @@
 
 .donation-year-compact .donation-plot {
   height: 150px;
+}
+
+/* Home: card titles share one heading style; chart scope and YoY sit on the right */
+.combo-home .panel-header h3 {
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.combo-home .panel-header {
+  align-items: center;
+}
+
+.combo-home-chart-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.combo-home-chart-meta .donation-yoy {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.combo-home-chart-meta .donation-yoy-change {
+  font-size: 0.9rem;
+}
+
+.combo-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--glass-border, var(--bp-line));
+  border-radius: 999px;
+  background: var(--glass-bg-inner, var(--bp-surface));
+  color: var(--bp-ink-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.combo-home-chart .donation-chart-detail {
+  font-size: 0.78rem;
+  color: var(--bp-ink-faint);
+}
+
+/* small status line at the top of a page, e.g. "showing a saved copy" */
+.combo-fineprint {
+  margin: -6px 0 -8px;
+  color: var(--bp-ink-muted);
+  font-size: 0.78rem;
 }

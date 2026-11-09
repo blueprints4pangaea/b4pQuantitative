@@ -276,7 +276,9 @@ export function DonatedValueChart({ years, visible = true, title = "Donated valu
             <p className="donation-chart-detail">
               {active
                 ? `${active.year}: ${formatCurrencyWhole(active.valuation)} · ${formatPounds(active.pounds)} · ${active.shipments} shipment${active.shipments === 1 ? "" : "s"}`
-                : "Hover or tap a point for that year's poundage and shipment count."}
+                : compact
+                  ? "Hover a point for poundage and shipments."
+                  : "Hover or tap a point for that year's poundage and shipment count."}
             </p>
           </div>
 

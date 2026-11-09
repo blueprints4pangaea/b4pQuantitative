@@ -14,6 +14,9 @@ export default function Expansion() {
 
   return (
     <div className="combo-stack expansion-scope">
+      {tab === "scores" && scores.data?.source === "snapshot" && (
+        <p className="combo-fineprint">Showing a saved copy of the scores sheet. Live data turns on once the sheet is connected.</p>
+      )}
       <Subtabs
         tabs={[
           { id: "scores", label: "Chapter Scores" },
