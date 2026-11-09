@@ -1026,3 +1026,25 @@ textarea {
   white-space: normal;
   overflow: visible;
 }
+
+/* keep the donut's centre text inside the hole on Home's smaller donut */
+.combo-home-chart .chapter-donut-center strong {
+  font-size: 1.05rem;
+}
+
+.combo-home-chart .chapter-donut-center span {
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+}
+
+/* Home tiles: content sits at the top, and hovering doesn't lift the tile out of line */
+.combo-home-metrics .metric-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.combo-home-metrics .metric-card:hover {
+  transform: none;
+}
