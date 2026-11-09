@@ -4,7 +4,8 @@
 // finance dashboard's own extra filters.
 // Shipping is not a finance category: shipping cost comes from the master
 // shipment sheet and is shown next to finance cost, never added into it twice.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Donut, LineChart, MoneyFlowChart, ShareBars } from "../shared/charts";
 import { HQ } from "../shared/chapters";
 import { describeFilters, matchChapters, matchEntity, matchSemester, useFinance, useShipments } from "../shared/data";
@@ -153,11 +154,15 @@ function StatusBar({ fin, onSync, syncing }) {
   );
 }
 
+/** Year and Month, shown in the shared filter bar next to Chapter and Semester. */
 function PeriodFilters({ period, setPeriod, years }) {
+  const [slot, setSlot] = useState(null);
+  useEffect(() => setSlot(document.getElementById("combo-extra-filters")), []);
   const set = (key) => (e) => setPeriod({ ...period, [key]: e.target.value });
-  return (
-    <div className="combo-toolbar">
-      <label className="combo-filter">
+  if (!slot) return null;
+  return createPortal(
+    <>
+      <label>
         <span className="title-block-label">Year</span>
         <select className="shipment-filter-select" value={period.year} onChange={set("year")}>
           <option value="all">All years</option>
@@ -166,7 +171,7 @@ function PeriodFilters({ period, setPeriod, years }) {
           ))}
         </select>
       </label>
-      <label className="combo-filter">
+      <label>
         <span className="title-block-label">Month</span>
         <select className="shipment-filter-select" value={period.month} onChange={set("month")}>
           <option value="all">All months</option>
@@ -182,7 +187,8 @@ function PeriodFilters({ period, setPeriod, years }) {
           Reset year and month
         </button>
       )}
-    </div>
+    </>,
+    slot
   );
 }
 
