@@ -33,6 +33,18 @@ function DestinationSplit({ types }) {
   );
 }
 
+/** "▲ 12 vs 2025" under a tile; up is green unless upIsBad (e.g. expenses). */
+function VsLastYear({ cur, prev, year, format, upIsBad = false }) {
+  if (cur == null || prev == null || !year) return null;
+  const diff = cur - prev;
+  const good = upIsBad ? diff <= 0 : diff >= 0;
+  return (
+    <span className={good ? "combo-good" : "combo-bad"}>
+      {diff >= 0 ? "▲" : "▼"} {format(Math.abs(diff))} <span className="combo-vs">vs {year}</span>
+    </span>
+  );
+}
+
 /** Height for each chart, so the two chart rows fill what's left of the window. */
 function useChartHeight() {
   const calc = () => Math.round(Math.min(230, Math.max(140, window.innerHeight / 2 - 290)));
@@ -65,6 +77,20 @@ export default function Home({ filters, goTo }) {
     });
   }, [ships.rows, filters]);
   const lastTwo = yoy.slice(-2);
+  const [prevYear, curYear] = lastTwo.length === 2 ? lastTwo : [null, null];
+
+  // finance this year vs last year, for the chapter picked (semester filter ignored, like the year chart)
+  const finYoy = useMemo(() => {
+    const rows = filterFinance(fin.rows, { ...filters, semester: "all" });
+    const years = [...new Set(rows.map((r) => r.date.slice(0, 4)))].sort();
+    if (years.length < 2) return null;
+    const [py, cy] = years.slice(-2);
+    return {
+      year: py,
+      prev: financeTotals(rows.filter((r) => r.date.startsWith(py))),
+      cur: financeTotals(rows.filter((r) => r.date.startsWith(cy))),
+    };
+  }, [fin.rows, filters]);
 
   // the same breakdowns Operations shows beside its map, for the filtered shipments
   const byType = useMemo(
@@ -127,15 +153,41 @@ export default function Home({ filters, goTo }) {
       <div className="combo-home-kpis">
         <Card title="Operations Overview" className="combo-home-card combo-home-card-two" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
-            <Metric label="Total Shipments" value={loading(ships) ?? formatNum(shipRows.length)} onClick={() => goTo("operations")} />
-            <Metric label="Value Shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
+            <Metric
+              label="Total Shipments"
+              value={loading(ships) ?? formatNum(shipRows.length)}
+              hint={curYear && <VsLastYear cur={curYear.shipments} prev={prevYear.shipments} year={prevYear.year} format={formatNum} />}
+              onClick={() => goTo("operations")}
+            />
+            <Metric
+              label="Value Shipped"
+              value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))}
+              hint={curYear && <VsLastYear cur={curYear.valuation} prev={prevYear.valuation} year={prevYear.year} format={formatUsdShort} />}
+              onClick={() => goTo("operations")}
+            />
           </div>
         </Card>
         <Card title="Financial Overview" className="combo-home-card" actions={chips(describeFilters(filters))}>
           <div className="combo-home-metrics">
-            <Metric label="Total Revenue" value={loading(fin) ?? formatUsdShort(t.revenue)} onClick={() => goTo("finance")} />
-            <Metric label="Total Expenses" value={loading(fin) ?? formatUsdShort(t.cost)} onClick={() => goTo("finance")} />
-            <Metric label="Net Income" value={loading(fin) ?? formatUsdShort(t.net)} tone={t.net < 0 ? "bad" : undefined} onClick={() => goTo("finance")} />
+            <Metric
+              label="Total Revenue"
+              value={loading(fin) ?? formatUsdShort(t.revenue)}
+              hint={finYoy && <VsLastYear cur={finYoy.cur.revenue} prev={finYoy.prev.revenue} year={finYoy.year} format={formatUsdShort} />}
+              onClick={() => goTo("finance")}
+            />
+            <Metric
+              label="Total Expenses"
+              value={loading(fin) ?? formatUsdShort(t.cost)}
+              hint={finYoy && <VsLastYear cur={finYoy.cur.cost} prev={finYoy.prev.cost} year={finYoy.year} format={formatUsdShort} upIsBad />}
+              onClick={() => goTo("finance")}
+            />
+            <Metric
+              label="Net Income"
+              value={loading(fin) ?? formatUsdShort(t.net)}
+              tone={t.net < 0 ? "bad" : undefined}
+              hint={finYoy && <VsLastYear cur={finYoy.cur.net} prev={finYoy.prev.net} year={finYoy.year} format={formatUsdShort} />}
+              onClick={() => goTo("finance")}
+            />
             <Metric label="Shipping Costs" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
           </div>
         </Card>

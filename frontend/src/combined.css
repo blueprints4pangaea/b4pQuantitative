@@ -1190,3 +1190,12 @@ textarea {
 .combo-home-card-two .combo-home-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+
+.combo-vs {
+  color: var(--bp-ink-faint);
+  font-weight: 500;
+}
+
+.combo-home-metrics .combo-metric-hint {
+  white-space: nowrap;
+}
