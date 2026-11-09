@@ -21,12 +21,11 @@ Vite + FastAPI stack and in its look.
 | Tab | What it shows | Data |
 |---|---|---|
 | Home | Key ops, finance and expansion numbers; value of supplies donated year over year; net finances | all of the below |
-| Operations › Chapter operations | Shipments, value, weight and shipping cost per chapter | master shipment sheet (`/history/shipments`), plus chapter-doc shipments listed separately (`/chapter-shipments`) |
-| Operations › HQ inventory & shipments | The original operations dashboard (HQ only, no chapter filter) | inventory sheet |
+| Operations | The operations dashboard as before. Shipment KPIs and the past shipments archive now include every chapter's shipments (master sheet plus chapter Shipment History docs not yet in it) and have a chapter filter. Inventory is HQ only | inventory sheet, master shipment sheet, `backend/chapter_shipments.py` |
 | Finance | Revenue, Cost, and an Add-an-entry form | Revenue and Expenses sheets (`/finance`, `backend/finance/`) |
 | Expansion | Chapter Scores and Chapter Shipments | scores sheet (`/chapter-scores`), chapter Shipment History docs (`/chapter-shipments`) |
 
-- The **chapter** and **semester** filters under the header apply to Home, Chapter operations and Finance.
+- The **chapter** and **semester** filters next to the tabs apply to Home and Finance. Operations has its own chapter filter on Shipment KPIs and Past Shipments.
 - Chapter names are matched through one list with aliases: `frontend/src/shared/chapters.js`.
   Add a spelling there when a sheet uses a new one.
 - Semesters come from dates: Winter = Jan to Apr, Spring/Summer = May to Aug, Fall = Sep to Dec

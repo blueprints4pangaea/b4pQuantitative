@@ -1,21 +1,8 @@
-// Operations: chapter operations (filterable by chapter) plus the original
-// HQ inventory and shipment tabs, which stay HQ-only and unfiltered.
+// Operations: the operations dashboard as it was. Past shipments and the
+// Shipment KPIs include every chapter's shipments (master sheet plus the
+// chapter Shipment History docs, merged in the backend). Inventory is HQ only.
 import App from "../App";
-import { Subtabs } from "../shared/ui";
-import ChapterOps from "./ChapterOps";
 
-export default function Operations({ filters, sub, setSub }) {
-  return (
-    <div className="combo-stack">
-      <Subtabs
-        tabs={[
-          { id: "chapters", label: "Chapter operations" },
-          { id: "hq", label: "HQ inventory & shipments" },
-        ]}
-        value={sub}
-        onChange={setSub}
-      />
-      {sub === "chapters" ? <ChapterOps filters={filters} /> : <App embedded />}
-    </div>
-  );
+export default function Operations() {
+  return <App embedded />;
 }

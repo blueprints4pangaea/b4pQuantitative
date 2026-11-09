@@ -358,3 +358,102 @@
 .combo-stack > * {
   min-width: 0;
 }
+
+/* --- tabs and shared filters on one row --- */
+.combo-main-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.combo-main-tabs .combo-filters {
+  padding: 8px 12px;
+  border-radius: 999px;
+  align-items: center;
+}
+
+.combo-main-tabs .combo-filters label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.combo-main-tabs .shipment-filter-select {
+  min-width: 170px;
+  padding: 8px 12px;
+}
+
+/* --- Home: everything on one screen --- */
+.combo-home {
+  display: grid;
+  gap: 14px;
+}
+
+.combo-home .summary-card {
+  padding: 16px 18px;
+}
+
+.combo-home .panel-header {
+  margin-bottom: 4px;
+}
+
+.combo-home .combo-subtitle {
+  margin-top: 2px;
+  font-size: 0.82rem;
+}
+
+.combo-home-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.combo-home-card .section-label {
+  margin-bottom: 2px;
+}
+
+.combo-home-sub {
+  margin: 0 0 10px;
+  color: var(--bp-ink-faint);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combo-home-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.combo-home-metrics .metric-card {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.combo-home-metrics .metric-label {
+  font-size: 0.78rem;
+}
+
+.combo-home-metrics .metric-value {
+  margin-top: 4px;
+  font-size: 1.25rem;
+}
+
+.combo-home .combo-legend {
+  margin-bottom: 2px;
+}
+
+.combo-home .combo-chart-readout {
+  margin-top: 2px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 1100px) {
+  .combo-home-kpis {
+    grid-template-columns: 1fr;
+  }
+}

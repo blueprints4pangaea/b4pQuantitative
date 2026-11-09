@@ -3,6 +3,7 @@ import DonationHistory, { useDonationHistory } from "./DonationHistory";
 import PastShipmentArchive from "./PastShipmentArchive";
 import ShipmentMap from "./ShipmentMap";
 import { summarizeHistoryShipments, useHistoryShipments } from "./historyStats";
+import { splitChapters } from "./shared/chapters";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const SHIPMENT_STORAGE_KEY = "blueprints-current-shipments";
@@ -1422,6 +1423,8 @@ export default function App({ embedded = false }) {
   const { shipments: historyShipments, error: historyShipmentsError } = useHistoryShipments();
   // Year range for the Shipment KPIs stats and map; null means no limit.
   const [historyYearRange, setHistoryYearRange] = useState({ from: null, to: null });
+  // "All" or one chapter; filters the Shipment KPIs and the shipment archive
+  const [historyChapter, setHistoryChapter] = useState("All");
 
   async function refreshDashboard(showLoader = false) {
     try {
@@ -1589,27 +1592,36 @@ export default function App({ embedded = false }) {
   const historyToYear = historyYearRange.to ?? historyLastYear;
   const isHistoryYearFiltered =
     historyFromYear !== historyFirstYear || historyToYear !== historyLastYear;
+  const historyChapters = [...new Set((historyShipments ?? []).flatMap((shipment) => splitChapters(shipment.chapter)))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+  const isHistoryChapterFiltered = historyChapter !== "All";
+  const inHistoryChapter = (shipment) =>
+    !isHistoryChapterFiltered || splitChapters(shipment.chapter).includes(historyChapter);
   function inHistoryYearRange(year) {
     return (
       (historyFromYear === null || year >= historyFromYear) &&
       (historyToYear === null || year <= historyToYear)
     );
   }
-  const yearFilteredHistoryShipments = historyShipments?.filter((shipment) =>
-    inHistoryYearRange(shipment.year)
+  const yearFilteredHistoryShipments = historyShipments?.filter(
+    (shipment) => inHistoryYearRange(shipment.year) && inHistoryChapter(shipment)
   );
   const donationHistory =
-    isHistoryYearFiltered && yearFilteredHistoryShipments
+    (isHistoryYearFiltered || isHistoryChapterFiltered) && yearFilteredHistoryShipments
       ? {
           ...summarizeHistoryShipments(yearFilteredHistoryShipments),
           source: fullDonationHistory?.source,
         }
       : fullDonationHistory;
-  const historyRangeLabel = !isHistoryYearFiltered
+  const historyYearLabel = !isHistoryYearFiltered
     ? ""
     : historyFromYear === historyToYear
       ? String(historyFromYear)
       : `${historyFromYear}–${historyToYear}`;
+  const historyRangeLabel = [isHistoryChapterFiltered ? historyChapter : "", historyYearLabel]
+    .filter(Boolean)
+    .join(" · ");
 
   function setHistoryYear(field, value) {
     const year = Number(value);
@@ -1629,6 +1641,21 @@ export default function App({ embedded = false }) {
 
   const historyYearFilter = historyYears.length ? (
     <div className="history-year-filter">
+      <label>
+        <span>Chapter</span>
+        <select
+          value={historyChapter}
+          onChange={(event) => setHistoryChapter(event.target.value)}
+          disabled={!historyShipments}
+        >
+          <option value="All">All chapters</option>
+          {historyChapters.map((chapter) => (
+            <option key={chapter} value={chapter}>
+              {chapter}
+            </option>
+          ))}
+        </select>
+      </label>
       <label>
         <span>From</span>
         <select
@@ -1657,13 +1684,16 @@ export default function App({ embedded = false }) {
           ))}
         </select>
       </label>
-      {isHistoryYearFiltered ? (
+      {isHistoryYearFiltered || isHistoryChapterFiltered ? (
         <button
           type="button"
           className="history-year-reset"
-          onClick={() => setHistoryYearRange({ from: null, to: null })}
+          onClick={() => {
+            setHistoryYearRange({ from: null, to: null });
+            setHistoryChapter("All");
+          }}
         >
-          All years
+          Clear
         </button>
       ) : null}
     </div>
@@ -3229,7 +3259,8 @@ export default function App({ embedded = false }) {
   // tracked in this app (counted when created within the chosen years).
   const shipmentsByType = shipmentTypeOptions.map((type) => {
     const past = donationHistory?.types?.find((entry) => entry.type === type);
-    const appCount = shipments.filter(
+    // shipments made in this app are HQ's, so they drop out when one chapter is picked
+    const appCount = isHistoryChapterFiltered ? 0 : shipments.filter(
       (shipment) =>
         normalizeShipmentType(shipment.shipmentType) === type &&
         inHistoryYearRange(Number(String(shipment.createdAt || todayIsoDate()).slice(0, 4)))
@@ -4704,6 +4735,19 @@ export default function App({ embedded = false }) {
                 </select>
                 <select
                   className="shipment-filter-select"
+                  value={historyChapter}
+                  onChange={(event) => setHistoryChapter(event.target.value)}
+                  title="Filters the shipment archive below"
+                >
+                  <option value="All">Chapter: All</option>
+                  {historyChapters.map((chapter) => (
+                    <option key={chapter} value={chapter}>
+                      Chapter: {chapter}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="shipment-filter-select"
                   value={pastShipmentStatusDateFilter}
                   onChange={(event) => setPastShipmentStatusDateFilter(event.target.value)}
                 >
@@ -4914,6 +4958,7 @@ export default function App({ embedded = false }) {
               <PastShipmentArchive
                 searchTerm={pastShipmentSearchTerm}
                 typeFilter={pastShipmentTypeFilter}
+                chapterFilter={historyChapter}
               />
             </div>
           ) : null}
@@ -4924,7 +4969,11 @@ export default function App({ embedded = false }) {
         <>
         <DonationHistory
           history={donationHistory}
-          allYears={fullDonationHistory?.years}
+          allYears={
+            isHistoryChapterFiltered && historyShipments
+              ? summarizeHistoryShipments(historyShipments.filter(inHistoryChapter)).years
+              : fullDonationHistory?.years
+          }
           error={donationHistoryError}
           sideContent={shipmentMix}
           yearFilter={historyYearFilter}

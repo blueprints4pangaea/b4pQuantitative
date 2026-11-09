@@ -88,8 +88,8 @@ export default function Shell() {
     [ships.rows, fin.rows]
   );
 
-  // filters apply to Home, chapter operations and Finance; HQ inventory and Expansion have their own
-  const showFilters = route.tab === "home" || route.tab === "finance" || (route.tab === "operations" && route.sub === "chapters");
+  // the shared filters apply to Home and Finance; Operations and Expansion keep their own
+  const showFilters = route.tab === "home" || route.tab === "finance";
 
   return (
     <main className="page-shell">
@@ -101,24 +101,26 @@ export default function Shell() {
               {route.tab === "home" ? "Dashboard" : `${TABS.find((t) => t.id === route.tab).label} Dashboard`}
             </h1>
           </div>
-          <div className="title-block-cell">
-            <p className="title-block-label">Showing</p>
-            <p className="title-block-value">
-              {showFilters
-                ? filters.chapter === "all"
-                  ? "All of B4P"
-                  : filters.chapter === "chapters"
-                    ? "All chapters"
-                    : filters.chapter
-                : route.tab === "expansion"
-                  ? "All chapters"
-                  : "HQ"}
-            </p>
-          </div>
-          <div className="title-block-cell">
-            <p className="title-block-label">Semester</p>
-            <p className="title-block-value">{showFilters && filters.semester !== "all" ? filters.semester : "All"}</p>
-          </div>
+          {showFilters && (
+            <>
+            <div className="title-block-cell">
+              <p className="title-block-label">Showing</p>
+              <p className="title-block-value">
+                {showFilters
+                  ? filters.chapter === "all"
+                    ? "All of B4P"
+                    : filters.chapter === "chapters"
+                      ? "All chapters"
+                      : filters.chapter
+                  : ""}
+              </p>
+            </div>
+            <div className="title-block-cell">
+              <p className="title-block-label">Semester</p>
+              <p className="title-block-value">{showFilters && filters.semester !== "all" ? filters.semester : "All"}</p>
+            </div>
+            </>
+          )}
         </div>
         <div className="title-block-logo">
           <img className="dashboard-logo" src="/blueprints-logo.png" alt="Blueprints for Pangaea" />
@@ -134,26 +136,20 @@ export default function Shell() {
               role="tab"
               aria-selected={t.id === route.tab}
               className={t.id === route.tab ? "tab-button active" : "tab-button"}
-              onClick={() => goTo(t.id, t.id === "operations" ? route.sub : undefined)}
+              onClick={() => goTo(t.id)}
             >
               {t.label}
             </button>
           ))}
         </div>
+        {showFilters && (
+          <FilterBar filters={filters} setFilters={setFilters} chapters={chapters} semesters={semesters} allowHq />
+        )}
       </section>
 
       <div className="combo-body">
-        {showFilters && (
-          <FilterBar filters={filters} setFilters={setFilters} chapters={chapters} semesters={semesters} allowHq={route.tab !== "operations"} />
-        )}
         {route.tab === "home" && <Home filters={filters} goTo={goTo} />}
-        {route.tab === "operations" && (
-          <Operations
-            filters={filters.chapter === HQ ? { ...filters, chapter: "all" } : filters}
-            sub={route.sub}
-            setSub={(sub) => goTo("operations", sub)}
-          />
-        )}
+        {route.tab === "operations" && <Operations />}
         {route.tab === "finance" && <Finance filters={filters} />}
         {route.tab === "expansion" && <Expansion />}
       </div>

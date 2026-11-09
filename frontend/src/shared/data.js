@@ -62,3 +62,7 @@ export function describeFilters(filters) {
     filters.chapter === "all" ? "All of B4P" : filters.chapter === "chapters" ? "All chapters" : filters.chapter === HQ ? "HQ" : filters.chapter;
   return filters.semester === "all" ? who : `${who} · ${filters.semester}`;
 }
+
+export function filterShipments(rows, filters) {
+  return rows.filter((s) => matchChapters(s.chapters, filters) && matchSemester(s, filters));
+}

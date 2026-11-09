@@ -4,12 +4,11 @@ import { useMemo, useState } from "react";
 import { useApi } from "../shared/api";
 import { BarChart, useWidth } from "../shared/charts";
 import { HQ } from "../shared/chapters";
-import { describeFilters, matchChapters, useFinance, useScores, useShipments } from "../shared/data";
+import { describeFilters, filterShipments, matchChapters, useFinance, useScores, useShipments } from "../shared/data";
 import { formatMonth, formatNum, formatPct, formatUsd, formatUsdShort } from "../shared/format";
 import { sortSemesters } from "../shared/semester";
 import { summarize } from "../expansion/scoreStats";
 import { filterFinance, financeTotals } from "../finance/Finance";
-import { filterShipments } from "../operations/ChapterOps";
 import { COST_COLOR, Card, Metric, MetricRow, REVENUE_COLOR } from "../shared/ui";
 
 const add = (rows, key) => rows.reduce((s, r) => s + (r[key] ?? 0), 0);
@@ -20,7 +19,7 @@ function NetChart({ data }) {
   const [ref, width] = useWidth(data.length > 0);
   if (!data.length) return <p className="combo-empty">No finance entries for these filters.</p>;
   const W = Math.max(width, 480, data.length * 40);
-  const H = 240;
+  const H = 210;
   const pad = { top: 14, right: 8, bottom: 34, left: 64 };
   const innerW = W - pad.left - pad.right;
   const innerH = H - pad.top - pad.bottom;
@@ -105,46 +104,55 @@ export default function Home({ filters, goTo }) {
 
   const loading = (r) => (r.loading ? "…" : r.error ? "—" : null);
 
+  const sub = (text) => <p className="combo-home-sub">{text}</p>;
+
   return (
-    <div className="combo-stack">
-      <Card label="Operations" title="Inventory and shipments" subtitle={`Inventory is HQ's warehouse. Shipments follow the filters: ${describeFilters(filters)}`}>
-        <MetricRow>
-          <Metric label="Units in inventory" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations", "hq")} />
-          <Metric label="Inventory value" value={loading(kpis) ?? formatUsd(kpis.data.total_value)} onClick={() => goTo("operations", "hq")} />
-          <Metric label="Shipments" value={loading(ships) ?? formatNum(shipRows.length)} onClick={() => goTo("operations", "chapters")} />
-          <Metric label="Value of supplies shipped" value={loading(ships) ?? formatUsd(add(shipRows, "valuation"))} onClick={() => goTo("operations", "chapters")} />
-        </MetricRow>
-      </Card>
-
-      <Card label="Finance" title="Money in and out" subtitle={describeFilters(filters)}>
-        <MetricRow>
-          <Metric label="Revenue" value={loading(fin) ?? formatUsd(t.revenue)} onClick={() => goTo("finance")} />
-          <Metric label="Cost" value={loading(fin) ?? formatUsd(t.cost)} hint="Not counting shipping" onClick={() => goTo("finance")} />
-          <Metric label="Net" value={loading(fin) ?? formatUsd(t.net)} tone={t.net < 0 ? "bad" : undefined} onClick={() => goTo("finance")} />
-          <Metric label="Shipping cost" value={loading(ships) ?? formatUsd(add(shipRows, "shipping_cost"))} hint="From the master shipment sheet" onClick={() => goTo("operations", "chapters")} />
-        </MetricRow>
-      </Card>
-
-      <Card label="Expansion" title={exp ? `Chapter health · ${exp.sem}` : "Chapter health"} subtitle="Latest semester on the scores sheet">
-        <MetricRow>
-          <Metric label="Active chapters" value={loading(scores) ?? formatNum(exp.activeCount)} onClick={() => goTo("expansion")} />
-          <Metric
-            label="Average score"
-            value={loading(scores) ?? (exp.avg == null ? "—" : exp.avg.toFixed(1))}
-            hint={exp?.prevAvg != null && exp?.avg != null ? `${exp.avg - exp.prevAvg >= 0 ? "+" : "−"}${Math.abs(exp.avg - exp.prevAvg).toFixed(1)} vs ${exp.prev}` : undefined}
-            onClick={() => goTo("expansion")}
-          />
-          <Metric label="Need attention" value={loading(scores) ?? formatNum(exp.attention.length)} tone={exp?.attention.length ? "bad" : undefined} onClick={() => goTo("expansion")} />
-          <Metric label="New this semester" value={loading(scores) ?? formatNum(exp.newChapters.length)} onClick={() => goTo("expansion")} />
-        </MetricRow>
-      </Card>
+    <div className="combo-home">
+      <div className="combo-home-kpis">
+        <Card label="Operations" className="combo-home-card">
+          {sub(`Inventory: HQ · Shipments: ${describeFilters(filters)}`)}
+          <div className="combo-home-metrics">
+            <Metric label="Units in inventory" value={loading(kpis) ?? formatNum(kpis.data.total_raw_items)} onClick={() => goTo("operations")} />
+            <Metric label="Inventory value" value={loading(kpis) ?? formatUsdShort(kpis.data.total_value)} onClick={() => goTo("operations")} />
+            <Metric label="Shipments" value={loading(ships) ?? formatNum(shipRows.length)} onClick={() => goTo("operations")} />
+            <Metric label="Value shipped" value={loading(ships) ?? formatUsdShort(add(shipRows, "valuation"))} onClick={() => goTo("operations")} />
+          </div>
+        </Card>
+        <Card label="Finance" className="combo-home-card">
+          {sub(describeFilters(filters))}
+          <div className="combo-home-metrics">
+            <Metric label="Revenue" value={loading(fin) ?? formatUsdShort(t.revenue)} onClick={() => goTo("finance")} />
+            <Metric label="Cost" value={loading(fin) ?? formatUsdShort(t.cost)} onClick={() => goTo("finance")} />
+            <Metric label="Net" value={loading(fin) ?? formatUsdShort(t.net)} tone={t.net < 0 ? "bad" : undefined} onClick={() => goTo("finance")} />
+            <Metric label="Shipping cost" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
+          </div>
+        </Card>
+        <Card label="Expansion" className="combo-home-card">
+          {sub(exp ? `Chapter scores · ${exp.sem}` : "Chapter scores")}
+          <div className="combo-home-metrics">
+            <Metric label="Active chapters" value={loading(scores) ?? formatNum(exp.activeCount)} onClick={() => goTo("expansion")} />
+            <Metric
+              label={exp?.prev ? `Avg score (vs ${exp.prev})` : "Avg score"}
+              value={
+                loading(scores) ??
+                (exp.avg == null
+                  ? "—"
+                  : `${exp.avg.toFixed(1)}${exp.prevAvg != null ? ` ${exp.avg - exp.prevAvg >= 0 ? "▲" : "▼"}${Math.abs(exp.avg - exp.prevAvg).toFixed(1)}` : ""}`)
+              }
+              onClick={() => goTo("expansion")}
+            />
+            <Metric label="Need attention" value={loading(scores) ?? formatNum(exp.attention.length)} tone={exp?.attention.length ? "bad" : undefined} onClick={() => goTo("expansion")} />
+            <Metric label="New chapters" value={loading(scores) ?? formatNum(exp.newChapters.length)} onClick={() => goTo("expansion")} />
+          </div>
+        </Card>
+      </div>
 
       <div className="combo-two-col">
         <Card
           title="Value of supplies donated, year over year"
-          subtitle={`From the master shipment sheet · ${filters.chapter === "all" || filters.chapter === "chapters" ? "every chapter" : filters.chapter}${yoyChange != null ? ` · ${yoyChange >= 0 ? "+" : ""}${formatPct(yoyChange)} vs the year before` : ""}`}
+          subtitle={`${filters.chapter === "all" || filters.chapter === "chapters" ? "Every chapter" : filters.chapter}${yoyChange != null ? ` · ${yoyChange >= 0 ? "+" : ""}${formatPct(yoyChange)} vs the year before` : ""}`}
         >
-          <BarChart data={yoy} series={[{ name: "Value of supplies", color: REVENUE_COLOR }]} format={formatUsdShort} />
+          <BarChart data={yoy} series={[{ name: "Value of supplies", color: REVENUE_COLOR }]} format={formatUsdShort} height={210} />
         </Card>
         <Card title="Net finances" subtitle={`Revenue minus cost by ${filters.semester === "all" ? "semester" : "month"} · ${describeFilters(filters)}`}>
           <NetChart data={net} />
@@ -153,4 +161,3 @@ export default function Home({ filters, goTo }) {
     </div>
   );
 }
-
