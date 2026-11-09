@@ -82,6 +82,8 @@ export default function Home({ filters, goTo }) {
     for (const r of shipRows) {
       const names = r.chapters.length ? r.chapters : ["Unassigned"];
       for (const name of names) {
+        // a shipment shared with another chapter only counts the picked chapter's share
+        if (filters.chapter === "chapters" ? name === HQ : filters.chapter !== "all" && name !== filters.chapter) continue;
         const label = name === HQ ? "HQ (UMich)" : name;
         const cur = m.get(label) ?? { chapter: label, valuation: 0, shipments: 0 };
         cur.valuation += (r.valuation ?? 0) / names.length;
@@ -90,7 +92,7 @@ export default function Home({ filters, goTo }) {
       }
     }
     return [...m.values()].sort((a, b) => b.valuation - a.valuation);
-  }, [shipRows]);
+  }, [shipRows, filters.chapter]);
   const yoyChange = lastTwo.length === 2 && lastTwo[0].valuation ? lastTwo[1].valuation / lastTwo[0].valuation - 1 : null;
 
   const net = useMemo(() => {
