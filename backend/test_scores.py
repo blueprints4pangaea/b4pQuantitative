@@ -66,3 +66,24 @@ def test_untidy_headers_and_moved_markers():
     ]
     tables = find_tables(grid)
     assert [t["semesters"] for t in tables] == [["W25", "F25", "W26", "F26"], ["W26", "F26"]]
+
+
+def test_standardized_layout():
+    from backend.scores import merge_semester_tabs
+
+    tabs = [
+        ("W26", [["Chapter", "Score", "Stage"], ["Alpha", "60", "Beginner"], ["Beta", "MISSING", "Intermediate"]]),
+        ("F26", [["Chapter", "Score", "Stage"], ["Alpha", "72", "Intermediate"], ["Beta", "80", "Intermediate"]]),
+        #duplicated but not added to the summary yet: a draft
+        ("W27", [["Chapter", "Score", "Stage"], ["Alpha", "99", "Advanced"]]),
+    ]
+    roster = [["Chapter", "Standing", "Notes"], ["Alpha", "Active", ""], ["Beta", "Offboarding", "Leaving"]]
+    summary = [["", "Chapter", "Standing", "Stage", "Latest", "W26", "F26"]]
+    data = merge_semester_tabs(tabs, roster, summary)
+    assert data["semesters"] == ["W26", "F26"]
+    assert data["stageSemesters"] == ["W26", "F26"]
+    ch = {c["name"]: c for c in data["chapters"]}
+    assert ch["Alpha"]["scores"] == {"W26": 60, "F26": 72}
+    assert ch["Alpha"]["stages"] == {"W26": "Beginner", "F26": "Intermediate"}
+    assert ch["Beta"]["unscored"] == ["W26"]
+    assert ch["Beta"]["standing"] == "Offboarding"
