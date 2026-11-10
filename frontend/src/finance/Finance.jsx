@@ -32,10 +32,6 @@ function groupSum(rows, key) {
   return [...m.values()].sort((a, b) => b.value - a.value);
 }
 
-/** Finance cost rows that are shipping ("Shipping", "Shipping & Freight", ...). */
-export const isShippingCost = (r) => r.flow === "cost" && /shipping|freight/i.test(r.category ?? "");
-export const shippingCostOf = (rows) => sum(rows.filter(isShippingCost));
-
 export function financeTotals(rows) {
   const revenue = sum(rows.filter((r) => r.flow === "revenue"));
   const cost = sum(rows.filter((r) => r.flow === "cost"));
@@ -245,14 +241,13 @@ function Overview({ rows, scoped, period, filters }) {
       <Variance scoped={scoped} period={period} />
       <MetricRow>
         <Metric label="Total Revenue" value={formatUsd(t.revenue)} hint={`${formatNum(rows.filter((r) => r.flow === "revenue").length)} entries`} />
-        <Metric label="Total Expenses" value={formatUsd(t.cost)} hint="Including shipping" />
+        <Metric label="Total Expenses" value={formatUsd(t.cost)} hint={`${formatNum(rows.filter((r) => r.flow === "cost").length)} entries`} />
         <Metric
           label="Net Margin"
           value={t.net >= 0 ? `+${formatUsd(t.net)}` : formatUsd(t.net)}
           tone={t.net < 0 ? "bad" : undefined}
           hint={t.revenue ? `${formatPct(t.net / t.revenue)} operating margin` : undefined}
         />
-        <Metric label="Shipping Costs" value={formatUsd(shippingCostOf(rows))} hint="Part of expenses" />
       </MetricRow>
       <Card
         title="Revenue, Expenses and Net Income"
@@ -306,7 +301,6 @@ function Revenue({ rows, filters }) {
     <>
       <MetricRow>
         <Metric label="Total Revenue" value={formatUsd(sum(mine))} />
-        <Metric label="Largest Source" value={bySource[0]?.name ?? "—"} hint={bySource[0] ? formatUsd(bySource[0].value) : undefined} />
       </MetricRow>
       <Card title={`Revenue by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
         <LineChart height={240} data={chart.data} series={[{ name: "Revenue", color: REVENUE_COLOR }]} format={formatUsdShort} />
@@ -346,9 +340,8 @@ function Cost({ rows, filters }) {
   return (
     <>
       <MetricRow>
-        <Metric label="Total Expenses" value={formatUsd(sum(mine))} hint="Including shipping" />
+        <Metric label="Total Expenses" value={formatUsd(sum(mine))} hint={`${formatNum(mine.length)} entries`} />
         <Metric label="Largest Category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
-        <Metric label="Shipping Costs" value={formatUsd(shippingCostOf(mine))} hint="Part of expenses" />
       </MetricRow>
       <div className="combo-chart-side">
         <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>

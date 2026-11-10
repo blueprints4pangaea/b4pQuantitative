@@ -36,7 +36,7 @@ def _static_rows():
         {
             **r,
             "month": r["date"][:7],
-            "source": "2025 Income Statement",
+            "source": "Not itemized (2025)",
             "notes": "",
             "sheet": "2025 Income Statement (hardcoded)",
         }

@@ -56,7 +56,7 @@
 
 .combo-metric-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--metric-cols, 4), minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -1189,6 +1189,11 @@ textarea {
 /* Home: Operations Overview has two tiles, so they share the full card width */
 .combo-home-card-two .combo-home-metrics {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Financial Overview has three tiles (revenue, expenses, net) */
+.combo-home-card-three .combo-home-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .combo-vs {
