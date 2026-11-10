@@ -55,3 +55,14 @@ def test_newer_tab_wins():
     data = merge_tabs([("W25-F25", old), ("F25-W26", NEW_TAB)])
     beta = next(c for c in data["chapters"] if c["name"] == "Beta")
     assert beta["scores"] == {"W25": 69, "F25": 52, "W26": 63}
+
+
+def test_untidy_headers_and_moved_markers():
+    from backend.scores import find_tables
+
+    grid = [
+        ["Chapter ", "W25", "F25", "W26", "F26 (Oct.)", "Δ Score", "", "Chapter ", "W26", "Column 6"],
+        ["Wayne ", "69", "52", "63", "74", "11", "", "MSU**", "76", "68"],
+    ]
+    tables = find_tables(grid)
+    assert [t["semesters"] for t in tables] == [["W25", "F25", "W26", "F26"], ["W26", "F26"]]

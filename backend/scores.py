@@ -23,6 +23,25 @@ def semester_key(label):
     return int(year) * 3 + "WSF".index(season)
 
 
+SEMESTER_PREFIX = re.compile(r"^([WSF]\d{2})\b")
+PLACEHOLDER = re.compile(r"^(column \d+)?$", re.I)
+#the semesters B4P scores, in order through the year (no spring/summer tabs so far)
+SCORED_SEASONS = "WF"
+
+
+def semester_label(raw):
+    m = SEMESTER_PREFIX.match(raw.strip().upper())
+    return m.group(1) if m else None
+
+
+def next_semester(label):
+    season, year = label[0], int(label[1:])
+    i = SCORED_SEASONS.index(season) if season in SCORED_SEASONS else 0
+    if i + 1 < len(SCORED_SEASONS):
+        return f"{SCORED_SEASONS[i + 1]}{year:02d}"
+    return f"{SCORED_SEASONS[0]}{year + 1:02d}"
+
+
 def cell(grid, r, c):
     if r < len(grid) and c < len(grid[r]):
         return grid[r][c].strip()
@@ -36,11 +55,15 @@ def find_tables(grid):
             if cell(grid, r, c).lower() != "chapter":
                 continue
 
-            #semester headers to the right of "Chapter"
+            #semester headers to the right of "Chapter". Headers aren't always tidy:
+            #"F26 (Oct.)" counts as F26, and a placeholder like "Column 6" right
+            #after a semester is taken as the next semester in order
             sems = {}
             for cc in range(c + 1, len(row)):
-                label = cell(grid, r, cc).upper()
-                if not SEMESTER.match(label):
+                label = semester_label(cell(grid, r, cc))
+                if not label and sems and PLACEHOLDER.match(cell(grid, r, cc)):
+                    label = next_semester(list(sems.values())[-1])
+                if not label:
                     break
                 sems[cc] = label
             if not sems:
@@ -77,6 +100,8 @@ def merge_tabs(tabs):
         for stage, table in zip(STAGES, tables):
             all_sems.update(table["semesters"])
             for name, values in table["rows"]:
+                #"MSU**" marks a chapter that moved stage; it's still MSU
+                name = name.rstrip("*").strip()
                 ch = chapters.setdefault(name, {"name": name, "scores": {}, "stages": {}, "unscored": []})
                 #the tab's stage is where the chapter sits as of its latest semester
                 ch["stages"][latest] = stage
