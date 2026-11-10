@@ -2,13 +2,13 @@
 // tabs: Overview & KPIs, Revenue, Expenses and Chapters.
 // Chapter and semester come from the shared filter bar; Year and Month are the
 // finance dashboard's own extra filters.
-// Shipping is not a finance category: shipping cost comes from the master
-// shipment sheet and is shown next to finance cost, never added into it twice.
+// Shipping cost comes from the finance sheets' own shipping rows (already part of
+// expenses). The shipment trackers' Shipment Cost column is not used here.
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Donut, LineChart, MoneyFlowChart, ShareBars } from "../shared/charts";
 import { HQ } from "../shared/chapters";
-import { describeFilters, matchChapters, matchEntity, matchSemester, useFinance, useShipments } from "../shared/data";
+import { describeFilters, matchEntity, matchSemester, useFinance } from "../shared/data";
 import { formatMonth, formatNum, formatPct, formatUsd, formatUsdShort } from "../shared/format";
 import { sortSemesters } from "../shared/semester";
 import { COST_COLOR, Card, ErrorText, HeaderStatus, Loading, Metric, MetricRow, Notice, REVENUE_COLOR, Subtabs, Table } from "../shared/ui";
@@ -31,6 +31,10 @@ function groupSum(rows, key) {
   }
   return [...m.values()].sort((a, b) => b.value - a.value);
 }
+
+/** Finance cost rows that are shipping ("Shipping", "Shipping & Freight", ...). */
+export const isShippingCost = (r) => r.flow === "cost" && /shipping|freight/i.test(r.category ?? "");
+export const shippingCostOf = (rows) => sum(rows.filter(isShippingCost));
 
 export function financeTotals(rows) {
   const revenue = sum(rows.filter((r) => r.flow === "revenue"));
@@ -137,8 +141,10 @@ const ledgerColumns = (flow) => [
 
 /** Data status, shown in the page header under the title. */
 function StatusBar({ fin, onSync, syncing }) {
-  const live = Object.values(fin.origins).filter((o) => o.origin === "sheet").length;
-  const all = Object.values(fin.origins).length;
+  // the hardcoded 2025 statement is neither live nor sample, so it doesn't count here
+  const sheets = Object.values(fin.origins).filter((o) => o.origin !== "static" && o.origin !== "missing");
+  const live = sheets.filter((o) => o.origin === "sheet").length;
+  const all = sheets.length;
   const pulled = fin.data?.pulledAt ? new Date(fin.data.pulledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "—";
   return (
     <HeaderStatus>
@@ -149,6 +155,7 @@ function StatusBar({ fin, onSync, syncing }) {
         </span>
         <span>Last synced {pulled}</span>
         <span>{formatNum(fin.rows.length)} records</span>
+        {fin.origins.fy2025?.origin === "static" && <span>2025 from the 2025 Income Statement</span>}
         <button type="button" className="combo-link-button" onClick={onSync} disabled={syncing}>
           {syncing ? "Syncing…" : "Sync now"}
         </button>
@@ -230,7 +237,7 @@ function Variance({ scoped, period }) {
   );
 }
 
-function Overview({ rows, scoped, period, filters, shippingCost }) {
+function Overview({ rows, scoped, period, filters }) {
   const t = financeTotals(rows);
   const flow = monthly(rows);
   return (
@@ -238,14 +245,14 @@ function Overview({ rows, scoped, period, filters, shippingCost }) {
       <Variance scoped={scoped} period={period} />
       <MetricRow>
         <Metric label="Total Revenue" value={formatUsd(t.revenue)} hint={`${formatNum(rows.filter((r) => r.flow === "revenue").length)} entries`} />
-        <Metric label="Total Expenses" value={formatUsd(t.cost)} hint="Not counting shipping" />
+        <Metric label="Total Expenses" value={formatUsd(t.cost)} hint="Including shipping" />
         <Metric
           label="Net Margin"
           value={t.net >= 0 ? `+${formatUsd(t.net)}` : formatUsd(t.net)}
           tone={t.net < 0 ? "bad" : undefined}
           hint={t.revenue ? `${formatPct(t.net / t.revenue)} operating margin` : undefined}
         />
-        <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
+        <Metric label="Shipping Costs" value={formatUsd(shippingCostOf(rows))} hint="Part of expenses" />
       </MetricRow>
       <Card
         title="Revenue, Expenses and Net Income"
@@ -332,16 +339,16 @@ function Revenue({ rows, filters }) {
   );
 }
 
-function Cost({ rows, filters, shippingCost }) {
+function Cost({ rows, filters }) {
   const mine = rows.filter((r) => r.flow === "cost");
   const byCategory = groupSum(mine, "category");
   const chart = periodChart(mine, filters);
   return (
     <>
       <MetricRow>
-        <Metric label="Total Expenses" value={formatUsd(sum(mine))} hint="Not counting shipping" />
+        <Metric label="Total Expenses" value={formatUsd(sum(mine))} hint="Including shipping" />
         <Metric label="Largest Category" value={byCategory[0]?.name ?? "—"} hint={byCategory[0] ? formatUsd(byCategory[0].value) : undefined} />
-        <Metric label="Shipping Costs" value={formatUsd(shippingCost)} hint="From the master shipment sheet" />
+        <Metric label="Shipping Costs" value={formatUsd(shippingCostOf(mine))} hint="Part of expenses" />
       </MetricRow>
       <div className="combo-chart-side">
         <Card title={`Expenses by ${chart.by === "month" ? "Month" : "Semester"}`} subtitle={describeFilters(filters)}>
@@ -501,7 +508,6 @@ export default function Finance({ filters, setFilters }) {
   const [period, setPeriod] = useState({ year: "all", month: "all" });
   const [syncing, setSyncing] = useState(false);
   const fin = useFinance();
-  const ships = useShipments();
 
   // scoped: shared filters only (for month-over-month); rows: plus year and month
   const scoped = useMemo(() => filterFinance(fin.rows, filters), [fin.rows, filters]);
@@ -525,9 +531,6 @@ export default function Finance({ filters, setFilters }) {
     }
   };
 
-  const shippingCost = ships.rows
-    .filter((s) => matchChapters(s.chapters, filters) && matchSemester(s, filters) && matchPeriod({ date: `${s.year}-${String(s.month).padStart(2, "0")}` }, period))
-    .reduce((s, x) => s + (x.shipping_cost ?? 0), 0);
   const samples = Object.values(fin.origins).filter((o) => o.origin === "sample").map((o) => o.label);
 
   return (
@@ -540,9 +543,9 @@ export default function Finance({ filters, setFilters }) {
       )}
       <PeriodFilters period={period} setPeriod={setPeriod} years={years} />
       <Subtabs tabs={TABS} value={tab} onChange={setTab} />
-      {tab === "overview" && <Overview rows={rows} scoped={scoped} period={period} filters={filters} shippingCost={shippingCost} />}
+      {tab === "overview" && <Overview rows={rows} scoped={scoped} period={period} filters={filters} />}
       {tab === "revenue" && <Revenue rows={rows} filters={filters} />}
-      {tab === "cost" && <Cost rows={rows} filters={filters} shippingCost={shippingCost} />}
+      {tab === "cost" && <Cost rows={rows} filters={filters} />}
       {tab === "chapters" && <Chapters rows={everyone} filters={filters} setFilters={setFilters} />}
     </div>
   );

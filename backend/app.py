@@ -896,8 +896,6 @@ def finance(nocache: bool = False):
 def create_finance_entry(entry: FinanceEntry):
     if entry.amount <= 0:
         raise HTTPException(status_code=422, detail="Amount must be more than 0.")
-    if entry.category.strip().lower() == "shipping":
-        raise HTTPException(status_code=422, detail="Shipping costs go in the master shipment sheet, not finance.")
     return add_finance_entry(entry.model_dump())
 
 
