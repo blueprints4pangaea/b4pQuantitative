@@ -137,8 +137,10 @@ const ledgerColumns = (flow) => [
 
 /** Data status, shown in the page header under the title. */
 function StatusBar({ fin, onSync, syncing }) {
-  const live = Object.values(fin.origins).filter((o) => o.origin === "sheet").length;
-  const all = Object.values(fin.origins).length;
+  // the hardcoded 2025 statement is neither live nor sample, so it doesn't count here
+  const sheets = Object.values(fin.origins).filter((o) => o.origin !== "static" && o.origin !== "missing");
+  const live = sheets.filter((o) => o.origin === "sheet").length;
+  const all = sheets.length;
   const pulled = fin.data?.pulledAt ? new Date(fin.data.pulledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "—";
   return (
     <HeaderStatus>
@@ -149,6 +151,7 @@ function StatusBar({ fin, onSync, syncing }) {
         </span>
         <span>Last synced {pulled}</span>
         <span>{formatNum(fin.rows.length)} records</span>
+        {fin.origins.fy2025?.origin === "static" && <span>2025 from the 2025 Income Statement</span>}
         <button type="button" className="combo-link-button" onClick={onSync} disabled={syncing}>
           {syncing ? "Syncing…" : "Sync now"}
         </button>

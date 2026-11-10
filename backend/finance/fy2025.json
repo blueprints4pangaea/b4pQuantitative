@@ -1,0 +1,757 @@
+{
+ "_about": "FY2025 figures hardcoded from the '2025 Income Statement' workbook (Individual Chapters block). Monthly totals per chapter and category. University of Michigan is HQ. A negative cost is a reimbursement (USC transportation, Jan 2025). Edit by hand only.",
+ "rows": [
+  {
+   "id": "fy2025-001",
+   "date": "2025-03-01",
+   "amount": 922.72,
+   "flow": "revenue",
+   "category": "Fundraiser",
+   "entity": "MSU"
+  },
+  {
+   "id": "fy2025-002",
+   "date": "2025-03-01",
+   "amount": 379.5,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "MSU"
+  },
+  {
+   "id": "fy2025-003",
+   "date": "2025-07-01",
+   "amount": 200.0,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "MSU"
+  },
+  {
+   "id": "fy2025-004",
+   "date": "2025-11-01",
+   "amount": 500.0,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "MSU"
+  },
+  {
+   "id": "fy2025-005",
+   "date": "2025-01-01",
+   "amount": 200.5,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "OSU"
+  },
+  {
+   "id": "fy2025-006",
+   "date": "2025-01-01",
+   "amount": 502.07,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "OSU"
+  },
+  {
+   "id": "fy2025-007",
+   "date": "2025-01-01",
+   "amount": 204.28,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-008",
+   "date": "2025-02-01",
+   "amount": 30.0,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-009",
+   "date": "2025-04-01",
+   "amount": 274.74,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-010",
+   "date": "2025-05-01",
+   "amount": 19.64,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-011",
+   "date": "2025-07-01",
+   "amount": 19.64,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-012",
+   "date": "2025-08-01",
+   "amount": 39.28,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-013",
+   "date": "2025-09-01",
+   "amount": 29.46,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-014",
+   "date": "2025-10-01",
+   "amount": 19.64,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-015",
+   "date": "2025-11-01",
+   "amount": 19.64,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-016",
+   "date": "2025-12-01",
+   "amount": 19.64,
+   "flow": "revenue",
+   "category": "Donation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-017",
+   "date": "2025-01-01",
+   "amount": 100.0,
+   "flow": "revenue",
+   "category": "Fundraiser",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-018",
+   "date": "2025-03-01",
+   "amount": 25.0,
+   "flow": "revenue",
+   "category": "Fundraiser",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-019",
+   "date": "2025-04-01",
+   "amount": 225.0,
+   "flow": "revenue",
+   "category": "Fundraiser",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-020",
+   "date": "2025-03-01",
+   "amount": 950.0,
+   "flow": "revenue",
+   "category": "Grant",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-021",
+   "date": "2025-04-01",
+   "amount": 1833.62,
+   "flow": "revenue",
+   "category": "Grant",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-022",
+   "date": "2025-09-01",
+   "amount": 3855.57,
+   "flow": "revenue",
+   "category": "Grant",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-023",
+   "date": "2025-11-01",
+   "amount": 4325.0,
+   "flow": "revenue",
+   "category": "Grant",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-024",
+   "date": "2025-12-01",
+   "amount": 2699.16,
+   "flow": "revenue",
+   "category": "Grant",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-025",
+   "date": "2025-01-01",
+   "amount": 88.25,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-026",
+   "date": "2025-02-01",
+   "amount": 245.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-027",
+   "date": "2025-03-01",
+   "amount": 105.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-028",
+   "date": "2025-05-01",
+   "amount": 180.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-029",
+   "date": "2025-08-01",
+   "amount": 520.62,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-030",
+   "date": "2025-09-01",
+   "amount": 193.25,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-031",
+   "date": "2025-10-01",
+   "amount": 137.23,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-032",
+   "date": "2025-11-01",
+   "amount": 434.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-033",
+   "date": "2025-12-01",
+   "amount": 105.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-034",
+   "date": "2025-01-01",
+   "amount": 2.87,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-035",
+   "date": "2025-02-01",
+   "amount": 2.87,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-036",
+   "date": "2025-03-01",
+   "amount": 2.6,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-037",
+   "date": "2025-04-01",
+   "amount": 289.67,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-038",
+   "date": "2025-05-01",
+   "amount": 2.79,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-039",
+   "date": "2025-06-01",
+   "amount": 2.87,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-040",
+   "date": "2025-07-01",
+   "amount": 2.78,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-041",
+   "date": "2025-08-01",
+   "amount": 199.03,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-042",
+   "date": "2025-09-01",
+   "amount": 2.87,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-043",
+   "date": "2025-10-01",
+   "amount": 2.79,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-044",
+   "date": "2025-11-01",
+   "amount": 2.87,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-045",
+   "date": "2025-12-01",
+   "amount": 2.78,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-046",
+   "date": "2025-01-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-047",
+   "date": "2025-02-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-048",
+   "date": "2025-03-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-049",
+   "date": "2025-04-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-050",
+   "date": "2025-05-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-051",
+   "date": "2025-06-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-052",
+   "date": "2025-07-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-053",
+   "date": "2025-08-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-054",
+   "date": "2025-09-01",
+   "amount": 734.4,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-055",
+   "date": "2025-10-01",
+   "amount": 741.6,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-056",
+   "date": "2025-11-01",
+   "amount": 720.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-057",
+   "date": "2025-12-01",
+   "amount": 353.2,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-058",
+   "date": "2025-03-01",
+   "amount": 98.26,
+   "flow": "cost",
+   "category": "Supplies",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-059",
+   "date": "2025-04-01",
+   "amount": 57.22,
+   "flow": "cost",
+   "category": "Supplies",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-060",
+   "date": "2025-09-01",
+   "amount": 1075.0,
+   "flow": "cost",
+   "category": "Supplies",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-061",
+   "date": "2025-11-01",
+   "amount": 372.37,
+   "flow": "cost",
+   "category": "Supplies",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-062",
+   "date": "2025-12-01",
+   "amount": 859.66,
+   "flow": "cost",
+   "category": "Supplies",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-063",
+   "date": "2025-01-01",
+   "amount": 40.0,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-064",
+   "date": "2025-03-01",
+   "amount": 240.07,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-065",
+   "date": "2025-04-01",
+   "amount": 163.7,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-066",
+   "date": "2025-06-01",
+   "amount": 24.37,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-067",
+   "date": "2025-09-01",
+   "amount": 2052.27,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "HQ"
+  },
+  {
+   "id": "fy2025-068",
+   "date": "2025-10-01",
+   "amount": 106.0,
+   "flow": "revenue",
+   "category": "Fundraiser",
+   "entity": "UC Berkeley"
+  },
+  {
+   "id": "fy2025-069",
+   "date": "2025-01-01",
+   "amount": 200.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "UMiami Med"
+  },
+  {
+   "id": "fy2025-070",
+   "date": "2025-12-01",
+   "amount": 35.0,
+   "flow": "revenue",
+   "category": "Fundraiser",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-071",
+   "date": "2025-02-01",
+   "amount": 23.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-072",
+   "date": "2025-09-01",
+   "amount": 26.0,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-073",
+   "date": "2025-11-01",
+   "amount": 22.66,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-074",
+   "date": "2025-12-01",
+   "amount": 19.95,
+   "flow": "cost",
+   "category": "Admin",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-075",
+   "date": "2025-07-01",
+   "amount": 4.0,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-076",
+   "date": "2025-11-01",
+   "amount": 4.0,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-077",
+   "date": "2025-12-01",
+   "amount": 4.0,
+   "flow": "cost",
+   "category": "Advertising",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-078",
+   "date": "2025-01-01",
+   "amount": 72.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-079",
+   "date": "2025-02-01",
+   "amount": 72.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-080",
+   "date": "2025-03-01",
+   "amount": 72.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-081",
+   "date": "2025-04-01",
+   "amount": 72.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-082",
+   "date": "2025-05-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-083",
+   "date": "2025-06-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-084",
+   "date": "2025-07-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-085",
+   "date": "2025-08-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-086",
+   "date": "2025-09-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-087",
+   "date": "2025-10-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-088",
+   "date": "2025-11-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-089",
+   "date": "2025-12-01",
+   "amount": 80.0,
+   "flow": "cost",
+   "category": "Rent",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-090",
+   "date": "2025-07-01",
+   "amount": 7012.0,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "WSU"
+  },
+  {
+   "id": "fy2025-091",
+   "date": "2025-01-01",
+   "amount": 4374.11,
+   "flow": "revenue",
+   "category": "Grant",
+   "entity": "USC"
+  },
+  {
+   "id": "fy2025-092",
+   "date": "2025-01-01",
+   "amount": -6011.33,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "USC"
+  },
+  {
+   "id": "fy2025-093",
+   "date": "2025-01-01",
+   "amount": 1433.0,
+   "flow": "revenue",
+   "category": "Grant",
+   "entity": "UNO"
+  },
+  {
+   "id": "fy2025-094",
+   "date": "2025-01-01",
+   "amount": 201.23,
+   "flow": "cost",
+   "category": "Transportation",
+   "entity": "UNO"
+  }
+ ]
+}
