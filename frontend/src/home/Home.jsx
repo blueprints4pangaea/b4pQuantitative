@@ -9,7 +9,7 @@ import { describeFilters, filterShipments, matchChapters, useFinance, useScores,
 import { formatMonth, formatNum, formatUsdShort } from "../shared/format";
 import { sortSemesters } from "../shared/semester";
 import { summarize } from "../expansion/scoreStats";
-import { filterFinance, financeTotals } from "../finance/Finance";
+import { filterFinance, financeTotals, shippingCostOf } from "../finance/Finance";
 import { COST_COLOR, Card, Metric, REVENUE_COLOR } from "../shared/ui";
 
 const add = (rows, key) => rows.reduce((s, r) => s + (r[key] ?? 0), 0);
@@ -209,7 +209,7 @@ export default function Home({ filters, goTo }) {
               hint={finYoy && <VsLastYear cur={finYoy.cur.net} prev={finYoy.prev.net} year={finYoy.year} format={formatUsdShort} />}
               onClick={() => goTo("finance")}
             />
-            <Metric label="Shipping Costs" value={loading(ships) ?? formatUsdShort(add(shipRows, "shipping_cost"))} onClick={() => goTo("operations")} />
+            <Metric label="Shipping Costs" value={loading(fin) ?? formatUsdShort(shippingCostOf(finRows))} hint="From the finance sheets" onClick={() => goTo("finance")} />
           </div>
         </Card>
         <Card title="Chapter Expansion" className="combo-home-card" actions={chips(exp ? `${exp.sem} Scores` : "Chapter Scores")}>

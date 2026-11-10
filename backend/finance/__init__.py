@@ -3,10 +3,9 @@
 Reads the live Revenue and Expenses sheets (monthly matrix or transaction list,
 see parse.py), falling back to the sample CSVs in backend/finance_sample/.
 
-Shipping is not a finance category here: the master shipment sheet is the
-source of truth for shipments and shipping cost, so finance rows in a Shipping
-category are left out and the Finance tab shows shipping cost from the master
-sheet instead.
+Shipping cost comes from the finance sheets (aak, 2026-11-10): rows in a
+shipping category count as expenses like any other. The shipment trackers'
+"Shipment Cost" column is not added into finance, so nothing is counted twice.
 
 2025 is a closed year: its figures are hardcoded in fy2025.json (from the 2025
 Income Statement) and the live sheets only supply 2026 onward. Any live row
@@ -19,7 +18,6 @@ from pathlib import Path
 
 from .sheets import append_transaction, load_all_sheets
 
-EXCLUDED_CATEGORIES = {"shipping"}
 STATIC_YEAR = "2025"
 STATIC_FILE = Path(__file__).with_name("fy2025.json")
 
@@ -58,7 +56,7 @@ def _row(tx):
 
 def load_finance(force_reload=False):
     transactions, origins, audit = load_all_sheets(force_reload=force_reload)
-    live = [_row(t) for t in transactions if t["category"].strip().lower() not in EXCLUDED_CATEGORIES]
+    live = [_row(t) for t in transactions]
     static = _static_rows()
     if static:
         live = [r for r in live if not r["date"].startswith(STATIC_YEAR)]
