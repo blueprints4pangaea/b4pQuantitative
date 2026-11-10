@@ -2,7 +2,7 @@
 // They reuse the operations dashboard's classes (summary-card, panel-header,
 // metric-card, shipment-subtab, shipment-kpi-table) so every tab looks the same.
 
-import { useEffect, useState } from "react";
+import { Children, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 // Categorical colors from the operations dashboard's chart palette.
@@ -43,8 +43,14 @@ export function Metric({ label, value, hint, tone, onClick }) {
   );
 }
 
+/** Tiles share the row evenly (up to 4 across; 2 across on phones). */
 export function MetricRow({ children }) {
-  return <div className="combo-metric-row">{children}</div>;
+  const n = Math.min(4, Math.max(1, Children.toArray(children).filter(Boolean).length));
+  return (
+    <div className="combo-metric-row" style={{ "--metric-cols": n }}>
+      {children}
+    </div>
+  );
 }
 
 export function Subtabs({ tabs, value, onChange }) {
