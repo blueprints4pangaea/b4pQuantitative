@@ -252,17 +252,24 @@ def tabs_from_gspread(creds_json):
     return merge_tabs([(ws.title, ws.get_all_values()) for ws in worksheets if TAB_NAME.match(ws.title.strip())])
 
 
+LAST_ERROR = None
+
+
 def load_scores():
     csv_urls = [u.strip() for u in os.getenv("SCORES_CSV_URLS", "").split(",") if u.strip()]
     creds_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS_JSON") or os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 
-    #live sheet first, saved copy if that fails
+    #live sheet first, saved copy if that fails. The reason it failed is kept in
+    #LAST_ERROR so /chapter-scores can show it (no need to dig through Vercel logs)
+    global LAST_ERROR
+    LAST_ERROR = None if (csv_urls or creds_json) else "no GOOGLE_SHEETS_CREDENTIALS_JSON or GOOGLE_SERVICE_ACCOUNT_JSON set"
     try:
         if csv_urls:
             return merge_tabs(tabs_from_csv_urls(csv_urls)), "sheet"
         if creds_json:
             return tabs_from_gspread(creds_json), "sheet"
     except Exception as exc:
+        LAST_ERROR = f"{type(exc).__name__}: {exc}"[:300]
         print(f"couldn't read the scores sheet, using snapshot: {exc}")
 
     #saved copy until the service account gets access to the sheet

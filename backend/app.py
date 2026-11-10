@@ -906,5 +906,7 @@ def chapter_scores():
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
     # "snapshot" means the live sheet wasn't reachable
-    return {**data, "source": source, "pulledAt": datetime.utcnow().isoformat() + "Z"}
+    import backend.scores as scores_module
+
+    return {**data, "source": source, "sourceError": scores_module.LAST_ERROR if source != "sheet" else None, "pulledAt": datetime.utcnow().isoformat() + "Z"}
 
