@@ -21,6 +21,9 @@ export const CHAPTERS = [
   { id: "uno", name: "UNO", aliases: ["uno"] },
   { id: "washu", name: "WashU", aliases: ["washu", "wustl", "washington university"] },
   { id: "osu", name: "OSU", aliases: ["osu", "ohio state", "ohio state university"] },
+  { id: "unc", name: "UNC", aliases: ["unc", "unc chapel hill"] },
+  { id: "umiami", name: "UMiami Med", aliases: ["umiami med", "umiami", "university of miami"] },
+  { id: "utah", name: "Utah Med", aliases: ["utah med", "utah"] },
 ];
 
 const BY_ALIAS = new Map();
